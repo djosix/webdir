@@ -1750,8 +1750,9 @@
             });
 
             // Add keydown event to checkbox to trigger entry link click when Enter is pressed
+            // or when right arrow is pressed on a directory
             checkbox.addEventListener("keydown", (e) => {
-              if (e.key === "Enter") {
+              if (e.key === "Enter" || (e.key === "ArrowRight" && entry.isDir)) {
                 e.preventDefault();
                 // Find and click the entry link
                 const nameLink = row.querySelector(".filename a");
@@ -2573,6 +2574,28 @@
                   return;
                 }
               }
+            }
+
+            // Press escape to defocus any focused element
+            if (e.key === "Escape") {
+              // Blur the active element to remove focus
+              if (document.activeElement) {
+                document.activeElement.blur();
+              }
+              return;
+            }
+
+            // Press left to go to the parent directory when not focusing on anything or when focusing on a checkbox in the file table
+            if (
+              e.key === "ArrowLeft" &&
+              (document.activeElement === document.body ||
+                (document.activeElement.tagName === "INPUT" && 
+                 document.activeElement.type === "checkbox" && 
+                  document.activeElement.closest(".file-table")))
+            ) {
+              e.preventDefault();
+              elements.btnParent.click();
+              return;
             }
             
             // Skip if we're in an input field or textarea
