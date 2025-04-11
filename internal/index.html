@@ -317,6 +317,11 @@
         color: var(--primary-color);
         text-decoration: underline;
       }
+      
+      /* Style for filename when checkbox is focused */
+      .file-table tr:has(input[type="checkbox"]:focus) .filename a {
+        text-decoration: underline;
+      }
 
       /* Improve visibility of hover in dark mode */
       [data-theme="dark"] .file-table tr:hover td {
@@ -1742,6 +1747,18 @@
               }
               updateSelectionCount();
               updateButtonStates();
+            });
+            
+            // Add keydown event to checkbox to trigger entry link click when Enter is pressed
+            checkbox.addEventListener("keydown", (e) => {
+              if (e.key === "Enter") {
+                e.preventDefault();
+                // Find and click the entry link
+                const nameLink = row.querySelector('.filename a');
+                if (nameLink) {
+                  nameLink.click();
+                }
+              }
             });
             checkboxCell.appendChild(checkbox);
             row.appendChild(checkboxCell);
