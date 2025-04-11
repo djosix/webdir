@@ -2061,6 +2061,9 @@
             // Fetch directory contents
             const contents = await api.listDirectory(path);
 
+            // Store previous path
+            const previousPath = state.currentPath + "/";
+
             // Update state
             state.currentPath = contents.path;
             state.entries = contents.entries;
@@ -2078,6 +2081,15 @@
 
             // Clear filter
             elements.filterInput.value = "";
+
+            // Focus on the checkbox of the entry that matches the previous path
+            document
+              .querySelector(
+                `.file-table a[href="${CSS.escape(previousPath)}"]`
+              )
+              ?.closest('.file-table tr')
+              ?.querySelector('input[type="checkbox"]')
+              ?.focus();
           } catch (error) {
             console.error("Navigation error:", error);
           }
