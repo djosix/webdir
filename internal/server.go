@@ -518,35 +518,31 @@ func sendJSONError(w http.ResponseWriter, message string, statusCode int) {
 	w.Write(jsonData)
 }
 
-// humanReadableSize converts a size in bytes to a human-readable string
+// humanReadableSize converts a size in bytes to a human-readable string using IEC binary prefixes (KiB, MiB, etc.).
 func humanReadableSize(size int64) string {
 	const unit = 1024
+	units := []string{"B", "KiB", "MiB", "GiB", "TiB", "PiB", "EiB"}
+
+	if size == 0 {
+		return "0 B"
+	}
+
 	if size < unit {
 		return fmt.Sprintf("%d B", size)
 	}
 
-	div, exp := int64(unit), 0
-	for n := size / unit; n >= unit; n /= unit {
-		div *= unit
-		exp++
+	value := float64(size)
+	exponent := 0
+
+	for value >= unit && exponent < len(units)-1 {
+		value /= unit
+		exponent++
 	}
 
-	// Format with up to 2 decimal places
-	val := float64(size) / float64(div)
-	var result string
-	if val < 10 {
-		result = fmt.Sprintf("%.2f", val)
-	} else if val < 100 {
-		result = fmt.Sprintf("%.1f", val)
-	} else {
-		result = fmt.Sprintf("%.0f", val)
-	}
+	formattedValue := fmt.Sprintf("%.1f", value)
+	formattedValue = strings.TrimSuffix(formattedValue, ".0")
 
-	// Remove trailing zeros
-	result = strings.TrimRight(result, "0")
-	result = strings.TrimRight(result, ".")
-
-	return result + " " + []string{"B", "Ki", "Mi", "Gi", "Ti", "Pi", "Ei"}[exp]
+	return fmt.Sprintf("%s %s", formattedValue, units[exponent])
 }
 
 // getPermissionString returns a permission string ("Read", "Write", "Read, Write", or "")
