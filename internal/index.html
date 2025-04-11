@@ -1832,7 +1832,18 @@
             // Add keydown event to checkbox to trigger entry link click when Enter is pressed
             // or when right arrow is pressed on a directory
             checkbox.addEventListener("keydown", (e) => {
-              if (e.key === "Enter" || (e.key === "ArrowRight" && entry.isDir)) {
+              // Skip if any dialog is active
+              const activeDialog = document.querySelector(
+                ".dialog-overlay.active"
+              );
+              if (activeDialog) {
+                return;
+              }
+
+              if (
+                e.key === "Enter" ||
+                (e.key === "ArrowRight" && entry.isDir)
+              ) {
                 e.preventDefault();
                 // Find and click the entry link
                 const nameLink = row.querySelector(".filename a");
@@ -2678,6 +2689,14 @@
         // Function to set up keyboard shortcuts
         function setupKeyboardShortcuts() {
           document.addEventListener("keydown", (e) => {
+            // Skip if any dialog is active
+            const activeDialog = document.querySelector(
+              ".dialog-overlay.active"
+            );
+            if (activeDialog) {
+              return;
+            }
+
             // Handle arrow keys when no element is focused (document.activeElement is body)
             if (document.activeElement === document.body) {
               if (e.key === "ArrowDown") {
@@ -2716,32 +2735,24 @@
             if (
               e.key === "ArrowLeft" &&
               (document.activeElement === document.body ||
-                (document.activeElement.tagName === "INPUT" && 
-                 document.activeElement.type === "checkbox" && 
+                (document.activeElement.tagName === "INPUT" &&
+                  document.activeElement.type === "checkbox" &&
                   document.activeElement.closest(".file-table")))
             ) {
               e.preventDefault();
               elements.btnParent.click();
               return;
             }
-            
+
             // Skip if we're in an input field (except file-table checkboxes) or textarea
             if (
-              (e.target.tagName === "INPUT" && 
+              (e.target.tagName === "INPUT" &&
                 !(
                   e.target.type === "checkbox" &&
                   e.target.closest(".file-table")
                 )) ||
               e.target.tagName === "TEXTAREA"
             ) {
-              return;
-            }
-
-            // Skip if any dialog is active
-            const activeDialog = document.querySelector(
-              ".dialog-overlay.active"
-            );
-            if (activeDialog) {
               return;
             }
 
@@ -2785,7 +2796,7 @@
                   elements.btnMove.click();
                 }
                 break;
-                
+
               case "c":
                 // Copy
                 if (state.selected.size > 0 && !elements.btnCopy.disabled) {
