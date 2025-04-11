@@ -2526,7 +2526,7 @@
         async function init() {
           try {
             // Get current path from URL
-            const path = window.location.pathname;
+            const path = decodeURI(window.location.pathname);
 
             // Navigate to current path
             await navigateTo(path);
