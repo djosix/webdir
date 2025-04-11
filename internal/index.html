@@ -2430,10 +2430,32 @@
           updateUI();
           applyFilter(elements.filterInput.value.trim());
         });
+        
+        // Add keyboard navigation for select all checkbox
+        elements.selectAll.addEventListener("keydown", (e) => {
+          if (e.key === "ArrowDown") {
+            e.preventDefault();
+            focusOnNextElement(elements.selectAll);
+          } else if (e.key === "ArrowUp") {
+            e.preventDefault();
+            focusOnPreviousElement(elements.selectAll);
+          }
+        });
 
         // Handle filter input
         elements.filterInput.addEventListener("input", () => {
           applyFilter(elements.filterInput.value.trim());
+        });
+        
+        // Add keyboard navigation for filter input
+        elements.filterInput.addEventListener("keydown", (e) => {
+          if (e.key === "ArrowDown") {
+            e.preventDefault();
+            focusOnNextElement(elements.filterInput);
+          } else if (e.key === "ArrowUp") {
+            e.preventDefault();
+            focusOnPreviousElement(elements.filterInput);
+          }
         });
 
         // Handle sort column click
@@ -2481,6 +2503,9 @@
 
         // Set up keyboard shortcuts
         setupKeyboardShortcuts();
+
+        // Set up keyboard navigation for filter and checkboxes
+        setupCheckboxNavigation();
 
         // Set up drag and drop functionality
         setupDragAndDrop();
@@ -2666,6 +2691,88 @@
           }
         }
 
+        // Function to set up keyboard navigation between filter and checkboxes
+        function setupCheckboxNavigation() {
+          // Make checkboxes focusable
+          function makeCheckboxesFocusable() {
+            // Make select all checkbox focusable
+            elements.selectAll.setAttribute('tabindex', '0');
+            
+            // Make all entry checkboxes focusable
+            const entryCheckboxes = elements.fileList.querySelectorAll('input[type="checkbox"]');
+            entryCheckboxes.forEach(checkbox => {
+              checkbox.setAttribute('tabindex', '0');
+              
+              // Add keyboard navigation for each checkbox
+              checkbox.addEventListener("keydown", (e) => {
+                if (e.key === "ArrowDown") {
+                  e.preventDefault();
+                  focusOnNextElement(checkbox);
+                } else if (e.key === "ArrowUp") {
+                  e.preventDefault();
+                  focusOnPreviousElement(checkbox);
+                }
+              });
+            });
+          }
+          
+          // Add observer to make checkboxes focusable when file list updates
+          const observer = new MutationObserver(() => {
+            makeCheckboxesFocusable();
+          });
+          
+          observer.observe(elements.fileList, { childList: true });
+          
+          // Initial setup
+          makeCheckboxesFocusable();
+        }
+        
+        // Function to focus on the next element in the navigation cycle
+        function focusOnNextElement(currentElement) {
+          // Get all focusable elements in order
+          const focusableElements = getFocusableElements();
+          
+          // Find current element index
+          const currentIndex = focusableElements.indexOf(currentElement);
+          
+          // Calculate next index (circular)
+          const nextIndex = (currentIndex + 1) % focusableElements.length;
+          
+          // Focus on next element
+          focusableElements[nextIndex].focus();
+        }
+        
+        // Function to focus on the previous element in the navigation cycle
+        function focusOnPreviousElement(currentElement) {
+          // Get all focusable elements in order
+          const focusableElements = getFocusableElements();
+          
+          // Find current element index
+          const currentIndex = focusableElements.indexOf(currentElement);
+          
+          // Calculate previous index (circular)
+          const prevIndex = (currentIndex - 1 + focusableElements.length) % focusableElements.length;
+          
+          // Focus on previous element
+          focusableElements[prevIndex].focus();
+        }
+        
+        // Function to get all focusable elements in the navigation cycle
+        function getFocusableElements() {
+          // Start with filter input
+          const elements = [document.getElementById('filter-input')];
+          
+          // Add select all checkbox
+          elements.push(document.querySelector('th input[type="checkbox"]'));
+          
+          // Add all visible entry checkboxes
+          const entryCheckboxes = Array.from(document.querySelectorAll('tbody input[type="checkbox"]'));
+          elements.push(...entryCheckboxes);
+          
+          // Filter out any null elements
+          return elements.filter(el => el !== null);
+        }
+        
         // Start the application
         init();
       });
