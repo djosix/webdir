@@ -1709,6 +1709,24 @@
           // Create rows for each entry
           sortedEntries.forEach((entry) => {
             const row = document.createElement("tr");
+            
+            // Add click event to row to focus on checkbox (except when clicking on name)
+            row.addEventListener("click", (e) => {
+              // Check if click was on the name link
+              const nameLink = row.querySelector('.filename a');
+              const checkbox = row.querySelector('input[type="checkbox"]');
+              
+              // Don't focus on checkbox if clicking on name link
+              if (e.target === nameLink || e.target === checkbox) {
+                return;
+              }
+              
+              // Find the checkbox and focus on it
+              if (checkbox) {
+                e.preventDefault();
+                checkbox.focus();
+              }
+            });
 
             // Checkbox cell
             const checkboxCell = document.createElement("td");
