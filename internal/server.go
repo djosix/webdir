@@ -477,6 +477,8 @@ func (s *Server) handleAPIRequest(w http.ResponseWriter, r *http.Request, apiTyp
 		s.handleAPIUpload(w, r)
 	case "move":
 		s.handleAPIMove(w, r)
+	case "copy":
+		s.handleAPICopy(w, r)
 	case "delete":
 		s.handleAPIDelete(w, r)
 	case "edit":
@@ -823,6 +825,200 @@ func (s *Server) handleAPIUpload(w http.ResponseWriter, r *http.Request) {
 			"files": uploadedFiles,
 		},
 	})
+}
+
+// handleAPICopy handles copy operations (similar to cp -r)
+func (s *Server) handleAPICopy(w http.ResponseWriter, r *http.Request) {
+	// Only allow POST requests
+	if r.Method != http.MethodPost {
+		sendJSONError(w, "Method not allowed", http.StatusMethodNotAllowed)
+		return
+	}
+
+	// Reject if modification is disabled
+	if s.Options.NoModify {
+		sendJSONError(w, "Modification is disabled", http.StatusForbidden)
+		return
+	}
+
+	// Parse the request body
+	var req APIRequest
+	if err := json.NewDecoder(r.Body).Decode(&req); err != nil {
+		sendJSONError(w, "Invalid request: "+err.Error(), http.StatusBadRequest)
+		return
+	}
+
+	// Validate request - we need source paths and a target
+	if len(req.Paths) == 0 && req.Path == "" {
+		sendJSONError(w, "Source path(s) required", http.StatusBadRequest)
+		return
+	}
+	if req.Target == "" {
+		sendJSONError(w, "Target path required", http.StatusBadRequest)
+		return
+	}
+
+	// If single path is provided, add it to paths array
+	paths := req.Paths
+	if req.Path != "" && len(paths) == 0 {
+		paths = []string{req.Path}
+	}
+
+	// Convert target to filesystem path and ensure it's safe
+	targetFsPath := s.absolutePath(req.Target)
+	if !s.isPathSafe(targetFsPath) {
+		sendJSONError(w, "Forbidden: Target path outside document root", http.StatusForbidden)
+		return
+	}
+
+	// Check if target is a directory
+	targetInfo, err := os.Stat(targetFsPath)
+	isTargetDir := err == nil && targetInfo.IsDir()
+
+	// Process each source path
+	copied := 0
+	errors := []string{}
+
+	for _, path := range paths {
+		// Convert to filesystem path and ensure it's safe
+		sourceFsPath := s.absolutePath(path)
+		if !s.isPathSafe(sourceFsPath) {
+			errors = append(errors, fmt.Sprintf("Forbidden: Source path outside document root: %s", path))
+			continue
+		}
+
+		// Determine the final target path
+		var finalTargetPath string
+		if isTargetDir {
+			// When target is a directory, always copy into it
+			finalTargetPath = filepath.Join(targetFsPath, filepath.Base(sourceFsPath))
+		} else {
+			finalTargetPath = targetFsPath
+		}
+
+		// Create parent directories if they don't exist
+		if err := os.MkdirAll(filepath.Dir(finalTargetPath), 0755); err != nil {
+			errors = append(errors, fmt.Sprintf("Failed to create parent directories for %s: %s", path, err.Error()))
+			continue
+		}
+
+		// Get source file info
+		sourceInfo, err := os.Stat(sourceFsPath)
+		if err != nil {
+			errors = append(errors, fmt.Sprintf("Failed to access source %s: %s", path, err.Error()))
+			continue
+		}
+
+		// Perform the copy operation based on whether it's a file or directory
+		if sourceInfo.IsDir() {
+			// Copy directory recursively
+			if err := copyDir(sourceFsPath, finalTargetPath); err != nil {
+				errors = append(errors, fmt.Sprintf("Failed to copy directory %s: %s", path, err.Error()))
+				continue
+			}
+		} else {
+			// Copy file
+			if err := copyFile(sourceFsPath, finalTargetPath); err != nil {
+				errors = append(errors, fmt.Sprintf("Failed to copy file %s: %s", path, err.Error()))
+				continue
+			}
+		}
+
+		copied++
+	}
+
+	// Send response
+	if len(errors) > 0 {
+		sendJSONResponse(w, APIResponse{
+			Success: copied > 0,
+			Message: fmt.Sprintf("Copied %d out of %d items. Errors: %s", copied, len(paths), strings.Join(errors, "; ")),
+			Data: map[string]interface{}{
+				"copied": copied,
+				"total":  len(paths),
+				"errors": errors,
+			},
+		})
+	} else {
+		sendJSONResponse(w, APIResponse{
+			Success: true,
+			Message: fmt.Sprintf("Successfully copied %d item(s)", copied),
+			Data: map[string]interface{}{
+				"copied": copied,
+				"total":  len(paths),
+			},
+		})
+	}
+}
+
+// copyFile copies a single file from src to dst
+func copyFile(src, dst string) error {
+	// Open source file
+	sourceFile, err := os.Open(src)
+	if err != nil {
+		return err
+	}
+	defer sourceFile.Close()
+
+	// Create destination file
+	destFile, err := os.Create(dst)
+	if err != nil {
+		return err
+	}
+	defer destFile.Close()
+
+	// Copy content
+	if _, err := io.Copy(destFile, sourceFile); err != nil {
+		return err
+	}
+
+	// Get source file info to copy permissions
+	sourceInfo, err := os.Stat(src)
+	if err != nil {
+		return err
+	}
+
+	// Copy file permissions
+	return os.Chmod(dst, sourceInfo.Mode())
+}
+
+// copyDir recursively copies a directory from src to dst
+func copyDir(src, dst string) error {
+	// Get source directory info
+	srcInfo, err := os.Stat(src)
+	if err != nil {
+		return err
+	}
+
+	// Create destination directory with same permissions
+	if err := os.MkdirAll(dst, srcInfo.Mode()); err != nil {
+		return err
+	}
+
+	// Read source directory entries
+	entries, err := os.ReadDir(src)
+	if err != nil {
+		return err
+	}
+
+	// Process each entry
+	for _, entry := range entries {
+		srcPath := filepath.Join(src, entry.Name())
+		dstPath := filepath.Join(dst, entry.Name())
+
+		if entry.IsDir() {
+			// Recursively copy subdirectory
+			if err := copyDir(srcPath, dstPath); err != nil {
+				return err
+			}
+		} else {
+			// Copy file
+			if err := copyFile(srcPath, dstPath); err != nil {
+				return err
+			}
+		}
+	}
+
+	return nil
 }
 
 // handleAPIMove handles move/rename operations

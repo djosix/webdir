@@ -918,6 +918,26 @@
           Move
         </button>
 
+        <button id="btn-copy" class="btn" disabled>
+          <svg
+            xmlns="http://www.w3.org/2000/svg"
+            viewBox="0 0 24 24"
+            width="24"
+            height="24"
+            fill="none"
+            stroke="currentColor"
+            stroke-width="2"
+            stroke-linecap="round"
+            stroke-linejoin="round"
+          >
+            <rect x="9" y="9" width="13" height="13" rx="2" ry="2"></rect>
+            <path
+              d="M5 15H4a2 2 0 0 1-2-2V4a2 2 0 0 1 2-2h9a2 2 0 0 1 2 2v1"
+            ></path>
+          </svg>
+          Copy
+        </button>
+
         <button id="btn-delete" class="btn" disabled>
           <svg
             xmlns="http://www.w3.org/2000/svg"
@@ -1051,6 +1071,29 @@
         <div class="dialog-footer">
           <button class="btn btn-cancel">Cancel</button>
           <button class="btn btn-confirm">Move</button>
+        </div>
+      </div>
+    </div>
+
+    <!-- Copy Dialog -->
+    <div id="copy-dialog" class="dialog-overlay">
+      <div class="dialog">
+        <div class="dialog-header">
+          <h3 class="dialog-title">Copy</h3>
+          <button class="dialog-close">&times;</button>
+        </div>
+        <div class="dialog-body">
+          <input
+            type="text"
+            id="copy-target"
+            class="dialog-input"
+            placeholder="Target path"
+            autocomplete="off"
+          />
+        </div>
+        <div class="dialog-footer">
+          <button class="btn btn-cancel">Cancel</button>
+          <button class="btn btn-confirm">Copy</button>
         </div>
       </div>
     </div>
@@ -1207,6 +1250,7 @@
           btnNewDirectory: document.getElementById("btn-new-directory"),
           btnUpload: document.getElementById("btn-upload"),
           btnMove: document.getElementById("btn-move"),
+          btnCopy: document.getElementById("btn-copy"),
           btnDelete: document.getElementById("btn-delete"),
           btnEdit: document.getElementById("btn-edit"),
           uploadInput: document.getElementById("upload-input"),
@@ -1217,12 +1261,14 @@
           newDirectoryDialog: document.getElementById("new-directory-dialog"),
           newFileDialog: document.getElementById("new-file-dialog"),
           moveDialog: document.getElementById("move-dialog"),
+          copyDialog: document.getElementById("copy-dialog"),
           editorDialog: document.getElementById("editor-dialog"),
           deleteDialog: document.getElementById("delete-dialog"),
 
           // Dialog inputs
           newDirectoryName: document.getElementById("new-directory-name"),
           moveTarget: document.getElementById("move-target"),
+          copyTarget: document.getElementById("copy-target"),
           editorTextarea: document.getElementById("editor-textarea"),
           deleteCount: document.getElementById("delete-count"),
 
@@ -1407,6 +1453,40 @@
               return data;
             } catch (error) {
               showToast("error", `Failed to move items: ${error.message}`);
+              throw error;
+            }
+          },
+
+          // Copy files/directories
+          async copyItems(paths, target) {
+            try {
+              const response = await fetch("/?api=copy", {
+                method: "POST",
+                headers: {
+                  "Content-Type": "application/json",
+                },
+                body: JSON.stringify({
+                  paths,
+                  target,
+                }),
+              });
+
+              if (!response.ok) {
+                throw new Error(`HTTP error ${response.status}`);
+              }
+
+              const data = await response.json();
+              if (!data.success) {
+                throw new Error(data.message || "Unknown error");
+              }
+
+              showToast(
+                "success",
+                `Successfully copied ${data.data.copied} item(s)`
+              );
+              return data;
+            } catch (error) {
+              showToast("error", `Failed to copy items: ${error.message}`);
               throw error;
             }
           },
@@ -1879,6 +1959,7 @@
 
           // Enable/disable buttons based on selection
           elements.btnMove.disabled = !hasSelection;
+          elements.btnCopy.disabled = !hasSelection;
           elements.btnDelete.disabled = !hasSelection;
           elements.btnEdit.disabled = !(hasSingleSelection && hasSingleFile);
 
@@ -2238,6 +2319,52 @@
 
             return true;
           });
+        });
+
+        // Handle copy button click
+        elements.btnCopy.addEventListener("click", () => {
+          const selectedEntries = getSelectedEntries();
+          if (selectedEntries.length === 0) {
+            return;
+          }
+
+          // Show copy dialog
+          const targetPath = state.currentPath + "/";
+          elements.copyDialog.querySelector(".dialog-title").textContent =
+            "Copy To";
+          elements.copyTarget.value = targetPath;
+
+          showDialog(elements.copyDialog, () => {
+            const target = elements.copyTarget.value.trim();
+            if (!target) {
+              showToast("error", "Target path cannot be empty");
+              return false;
+            }
+
+            const paths = selectedEntries.map((entry) => entry.path);
+
+            api
+              .copyItems(paths, target)
+              .then(() => {
+                // Refresh directory listing
+                navigateTo(state.currentPath);
+              })
+              .catch((error) => {
+                console.error("Copy error:", error);
+              });
+
+            return true;
+          });
+
+          // Reset dialog title after it's closed
+          elements.copyDialog.addEventListener(
+            "dialogclose",
+            () => {
+              elements.copyDialog.querySelector(".dialog-title").textContent =
+                "Copy To";
+            },
+            { once: true }
+          );
         });
 
         // Handle delete button click
@@ -2652,6 +2779,14 @@
                 if (state.selected.size > 0 && !elements.btnMove.disabled) {
                   e.preventDefault();
                   elements.btnMove.click();
+                }
+                break;
+                
+              case "c":
+                // Copy
+                if (state.selected.size > 0 && !elements.btnCopy.disabled) {
+                  e.preventDefault();
+                  elements.btnCopy.click();
                 }
                 break;
 
