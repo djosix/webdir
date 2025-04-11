@@ -2,7 +2,7 @@
 
 A simple web server for serving files and directories.
 
-<img width="1205" alt="image" src="https://github.com/user-attachments/assets/630691de-e257-4db1-9f94-dd7bd026f81c" />
+<img width="1249" alt="image" src="https://github.com/user-attachments/assets/71113c36-d559-4a92-b0f4-7e8136121027" />
 
 ## Quickstart
 
@@ -23,12 +23,12 @@ go run github.com/djosix/webdir@latest
 
 - Lists directory entries
 - Operations:
-    - Create folders
-    - Create text files
+    - Create directory
+    - Create empty file
     - Upload files
-    - Move files and folders
-    - Rename files
-    - Delete files and folders
+    - Move/Rename entries
+    - Copy entries
+    - Delete entries
     - Edit text files (supports indentation)
 - Opens files in a popup window (click) or a new tab (Ctrl-click)
 - Dark mode and light mode
@@ -38,6 +38,7 @@ go run github.com/djosix/webdir@latest
 - Disable listing (`-no-list`)
 - Easy curl upload using `curl http://webdir/folder -F upload=@/path/to/the/file`
 - Drag-and-drop file upload
+- Keyboard shortcuts for efficient operations
 
 ## Keyboard Shortcuts
 
