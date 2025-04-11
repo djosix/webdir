@@ -2510,6 +2510,12 @@
             }
 
             switch (e.key.toLowerCase()) {
+              case "s":
+                // Focus on filter input
+                e.preventDefault();
+                elements.filterInput.focus();
+                break;
+
               case "delete":
               case "backspace":
                 // Delete selected items
