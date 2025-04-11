@@ -9,6 +9,7 @@
       /* Light theme (default) */
       :root {
         --primary-color: #3498db;
+        --primary-color-rgb: 52, 152, 219;
         --hover-color: #2980b9;
         --text-color: #333;
         --border-color: #ddd;
@@ -49,6 +50,7 @@
       /* Dark theme */
       [data-theme="dark"] {
         --primary-color: #4ea6e0;
+        --primary-color-rgb: 78, 166, 224;
         --hover-color: #3498db;
         --text-color: #e0e0e0;
         --border-color: #444;
@@ -588,6 +590,38 @@
         background-color: var(--parent-dir-hover);
       }
       
+      /* Drag and drop styles */
+      .drag-drop-zone {
+        position: relative;
+      }
+      
+      .drag-drop-overlay {
+        position: absolute;
+        top: 0;
+        left: 0;
+        right: 0;
+        bottom: 0;
+        background-color: rgba(var(--primary-color-rgb), 0.1);
+        border: 2px dashed var(--primary-color);
+        border-radius: 4px;
+        display: none;
+        justify-content: center;
+        align-items: center;
+        z-index: 100;
+      }
+      
+      .drag-drop-overlay.active {
+        display: flex;
+      }
+      
+      .drag-drop-message {
+        background-color: var(--bg-color);
+        padding: 20px;
+        border-radius: 4px;
+        box-shadow: 0 2px 10px rgba(0, 0, 0, 0.1);
+        text-align: center;
+      }
+      
       .toolbar, .action-bar {
         background-color: var(--toolbar-bg);
         border-color: var(--border-color);
@@ -726,7 +760,7 @@
       }
     </style>
   </head>
-  <body>
+  <body class="drag-drop-zone">
     <div class="container">
       <header>
         <h1>WebDir</h1>
@@ -1071,6 +1105,14 @@
 
     <!-- File input for uploads (hidden) -->
     <input type="file" id="upload-input" style="display: none" multiple />
+    
+    <!-- Drag and drop overlay -->
+    <div class="drag-drop-overlay" id="drag-drop-overlay">
+      <div class="drag-drop-message">
+        <h3>Drop files to upload</h3>
+        <p>Files will be uploaded to the current folder</p>
+      </div>
+    </div>
 
     <script>
       // Theme switching functionality
@@ -1137,6 +1179,8 @@
           btnDelete: document.getElementById("btn-delete"),
           btnEdit: document.getElementById("btn-edit"),
           uploadInput: document.getElementById("upload-input"),
+          dragDropZone: document.body,
+          dragDropOverlay: document.getElementById("drag-drop-overlay"),
 
           // Dialogs
           newFolderDialog: document.getElementById("new-folder-dialog"),
@@ -2305,6 +2349,85 @@
           }
         }
 
+        // Set up drag and drop functionality
+        setupDragAndDrop();
+        
+        // Function to set up drag and drop handlers
+        function setupDragAndDrop() {
+          const zone = elements.dragDropZone;
+          const overlay = elements.dragDropOverlay;
+          let dragCounter = 0;
+          
+          // Prevent default drag behaviors
+          ['dragenter', 'dragover', 'dragleave', 'drop'].forEach(eventName => {
+            zone.addEventListener(eventName, preventDefaults, false);
+          });
+          
+          function preventDefaults(e) {
+            e.preventDefault();
+            e.stopPropagation();
+          }
+          
+          // Handle drag enter
+          zone.addEventListener('dragenter', function(e) {
+            dragCounter++;
+            overlay.classList.add('active');
+          }, false);
+          
+          // Handle drag over
+          zone.addEventListener('dragover', function(e) {
+            e.preventDefault();
+          }, false);
+          
+          // Handle drag leave
+          zone.addEventListener('dragleave', function(e) {
+            dragCounter--;
+            if (dragCounter === 0) {
+              overlay.classList.remove('active');
+            }
+          }, false);
+          
+          // Handle drop - this also resets the counter
+          zone.addEventListener('drop', function(e) {
+            dragCounter = 0;
+            overlay.classList.remove('active');
+            handleDrop(e);
+          }, false);
+          
+          function handleDrop(e) {
+            const dt = e.dataTransfer;
+            const files = dt.files;
+            
+            if (files.length > 0) {
+              handleFiles(files);
+            }
+          }
+          
+          // Handle the dropped files
+          function handleFiles(files) {
+            // Create progress tracker
+            const progressTracker = createUploadProgress(
+              files.length === 1 ? files[0].name : `${files.length} files`
+            );
+            
+            // Upload files to current path
+            api
+              .uploadFiles(state.currentPath, files, (progress) => {
+                progressTracker.update(progress);
+              })
+              .then(() => {
+                progressTracker.complete();
+                
+                // Refresh directory listing
+                navigateTo(state.currentPath);
+              })
+              .catch((error) => {
+                progressTracker.error();
+                console.error("Upload error:", error);
+              });
+          }
+        }
+        
         // Start the application
         init();
       });

@@ -37,3 +37,4 @@ go run github.com/djosix/webdir@latest
 - View-only mode (`-no-modify`)
 - Disable listing (`-no-list`)
 - Easy curl upload using `curl http://webdir/folder -F upload=@/path/to/the/file`
+- Drag-and-drop file upload
