@@ -2725,9 +2725,13 @@
               return;
             }
             
-            // Skip if we're in an input field or textarea
+            // Skip if we're in an input field (except file-table checkboxes) or textarea
             if (
-              e.target.tagName === "INPUT" ||
+              (e.target.tagName === "INPUT" && 
+                !(
+                  e.target.type === "checkbox" &&
+                  e.target.closest(".file-table")
+                )) ||
               e.target.tagName === "TEXTAREA"
             ) {
               return;
