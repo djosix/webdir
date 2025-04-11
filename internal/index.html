@@ -1561,7 +1561,7 @@
             setTimeout(() => input.focus(), 100);
           }
 
-          const closeDialog = () => {
+          const closeDialog = () => {            
             dialog.classList.remove("active");
             closeBtn.removeEventListener("click", closeDialog);
             cancelBtn.removeEventListener("click", closeDialog);
@@ -1581,9 +1581,18 @@
           // Close on Escape key
           const handleKeyDown = (e) => {
             if (e.key === "Escape") {
+              e.preventDefault();
               closeDialog();
-            } else if (e.key === "Enter" && e.target.tagName !== "TEXTAREA" && dialog !== elements.editorDialog) {
-              // Only handle Enter for non-editor dialogs
+              return;
+            }
+            
+            if (e.target.tagName === "TEXTAREA" || dialog === elements.editorDialog) {
+              return;
+            }
+            
+            // Only handle Enter for non-editor dialogs
+            if (e.key === "Enter") {
+              e.preventDefault();
               handleConfirm();
             }
           };
