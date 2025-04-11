@@ -802,6 +802,15 @@
         <li><a href="/">Home</a></li>
         <!-- Dynamic breadcrumb items will be added here -->
       </ol>
+      <button id="copy-path-btn" class="btn" style="margin-top: 10px;">
+        <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" width="16" height="16" fill="none"
+          stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+          <path d="M8 17l4 4 4-4" />
+          <path d="M12 12v9" />
+          <path d="M20 8h-7a4 4 0 0 1-4-4V3" />
+        </svg>
+        Copy Path
+      </button>
     </nav>
 
     <!-- Control bar -->
@@ -2256,6 +2265,18 @@
       // Handle browser navigation (back/forward)
       window.addEventListener("popstate", () => {
         navigateTo(window.location.pathname);
+      });
+
+      // 複製路徑按鈕功能
+      const copyPathBtn = document.getElementById("copy-path-btn");
+      copyPathBtn.addEventListener("click", () => {
+        const currentPath = state.currentPath;
+        navigator.clipboard.writeText(currentPath).then(() => {
+          showToast("success", "Path copied to clipboard!");
+        }).catch(err => {
+          showToast("error", "Failed to copy path.");
+          console.error(err);
+        });
       });
 
       // Initialize the application
