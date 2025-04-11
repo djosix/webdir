@@ -317,7 +317,7 @@
         color: var(--primary-color);
         text-decoration: underline;
       }
-      
+
       /* Style for filename when checkbox is focused */
       .file-table tr:has(input[type="checkbox"]:focus) .filename a {
         text-decoration: underline;
@@ -1658,7 +1658,7 @@
 
           // Update button states
           updateButtonStates();
-          
+
           // Update select all checkbox state
           updateSelectAllCheckbox();
         }
@@ -1714,18 +1714,18 @@
           // Create rows for each entry
           sortedEntries.forEach((entry) => {
             const row = document.createElement("tr");
-            
+
             // Add click event to row to focus on checkbox (except when clicking on name)
             row.addEventListener("click", (e) => {
               // Check if click was on the name link
-              const nameLink = row.querySelector('.filename a');
+              const nameLink = row.querySelector(".filename a");
               const checkbox = row.querySelector('input[type="checkbox"]');
-              
+
               // Don't focus on checkbox if clicking on name link
               if (e.target === nameLink || e.target === checkbox) {
                 return;
               }
-              
+
               // Find the checkbox and focus on it
               if (checkbox) {
                 e.preventDefault();
@@ -1748,13 +1748,13 @@
               updateSelectionCount();
               updateButtonStates();
             });
-            
+
             // Add keydown event to checkbox to trigger entry link click when Enter is pressed
             checkbox.addEventListener("keydown", (e) => {
               if (e.key === "Enter") {
                 e.preventDefault();
                 // Find and click the entry link
-                const nameLink = row.querySelector('.filename a');
+                const nameLink = row.querySelector(".filename a");
                 if (nameLink) {
                   nameLink.click();
                 }
@@ -1839,19 +1839,19 @@
           elements.selectionCount.textContent = state.selected.size;
           elements.totalCount.textContent = state.entries.length;
         }
-        
+
         // Update select all checkbox state based on visible entries
         function updateSelectAllCheckbox() {
-          const visibleEntries = elements.fileList.querySelectorAll('tr');
+          const visibleEntries = elements.fileList.querySelectorAll("tr");
           let checkedCount = 0;
-          
-          visibleEntries.forEach(row => {
+
+          visibleEntries.forEach((row) => {
             const checkbox = row.querySelector('input[type="checkbox"]');
             if (checkbox && checkbox.checked) {
               checkedCount++;
             }
           });
-          
+
           // Update select all checkbox
           if (visibleEntries.length === 0) {
             elements.selectAll.checked = false;
@@ -2016,7 +2016,7 @@
 
             // Restore original entries
             state.entries = originalEntries;
-            
+
             // Update select all checkbox state based on filtered entries
             updateSelectAllCheckbox();
           } catch (error) {
@@ -2422,20 +2422,22 @@
         // Handle select all checkbox
         elements.selectAll.addEventListener("change", () => {
           // Get all visible rows
-          const visibleRows = Array.from(elements.fileList.querySelectorAll('tr'));
-          
+          const visibleRows = Array.from(
+            elements.fileList.querySelectorAll("tr")
+          );
+
           if (elements.selectAll.checked) {
             // Select all visible entries (respecting filter)
-            visibleRows.forEach(row => {
+            visibleRows.forEach((row) => {
               const checkbox = row.querySelector('input[type="checkbox"]');
               if (checkbox) {
                 checkbox.checked = true;
-                
+
                 // Find the corresponding entry in state.entries
-                const nameLink = row.querySelector('td:nth-child(2) a');
+                const nameLink = row.querySelector("td:nth-child(2) a");
                 if (nameLink) {
                   const entryName = nameLink.textContent;
-                  const entry = state.entries.find(e => e.name === entryName);
+                  const entry = state.entries.find((e) => e.name === entryName);
                   if (entry) {
                     state.selected.add(entry.path);
                   }
@@ -2444,16 +2446,16 @@
             });
           } else {
             // Deselect all visible entries
-            visibleRows.forEach(row => {
+            visibleRows.forEach((row) => {
               const checkbox = row.querySelector('input[type="checkbox"]');
               if (checkbox) {
                 checkbox.checked = false;
-                
+
                 // Find the corresponding entry in state.entries
-                const nameLink = row.querySelector('td:nth-child(2) a');
+                const nameLink = row.querySelector("td:nth-child(2) a");
                 if (nameLink) {
                   const entryName = nameLink.textContent;
-                  const entry = state.entries.find(e => e.name === entryName);
+                  const entry = state.entries.find((e) => e.name === entryName);
                   if (entry) {
                     state.selected.delete(entry.path);
                   }
@@ -2465,7 +2467,7 @@
           updateUI();
           applyFilter(elements.filterInput.value.trim());
         });
-        
+
         // Add keyboard navigation for select all checkbox
         elements.selectAll.addEventListener("keydown", (e) => {
           if (e.key === "ArrowDown") {
@@ -2481,7 +2483,7 @@
         elements.filterInput.addEventListener("input", () => {
           applyFilter(elements.filterInput.value.trim());
         });
-        
+
         // Add keyboard navigation for filter input
         elements.filterInput.addEventListener("keydown", (e) => {
           if (e.key === "ArrowDown") {
@@ -2548,6 +2550,31 @@
         // Function to set up keyboard shortcuts
         function setupKeyboardShortcuts() {
           document.addEventListener("keydown", (e) => {
+            // Handle arrow keys when no element is focused (document.activeElement is body)
+            if (document.activeElement === document.body) {
+              if (e.key === "ArrowDown") {
+                e.preventDefault();
+                // Focus on first entry checkbox
+                const firstCheckbox = document.querySelector(
+                  'tbody input[type="checkbox"]'
+                );
+                if (firstCheckbox) {
+                  firstCheckbox.focus();
+                  return;
+                }
+              } else if (e.key === "ArrowUp") {
+                e.preventDefault();
+                // Focus on last entry checkbox
+                const checkboxes = document.querySelectorAll(
+                  'tbody input[type="checkbox"]'
+                );
+                if (checkboxes.length > 0) {
+                  checkboxes[checkboxes.length - 1].focus();
+                  return;
+                }
+              }
+            }
+            
             // Skip if we're in an input field or textarea
             if (
               e.target.tagName === "INPUT" ||
@@ -2628,6 +2655,8 @@
                 e.preventDefault();
                 elements.selectAll.click();
                 break;
+
+
             }
           });
         }
@@ -2731,13 +2760,15 @@
           // Make checkboxes focusable
           function makeCheckboxesFocusable() {
             // Make select all checkbox focusable
-            elements.selectAll.setAttribute('tabindex', '0');
-            
+            elements.selectAll.setAttribute("tabindex", "0");
+
             // Make all entry checkboxes focusable
-            const entryCheckboxes = elements.fileList.querySelectorAll('input[type="checkbox"]');
-            entryCheckboxes.forEach(checkbox => {
-              checkbox.setAttribute('tabindex', '0');
-              
+            const entryCheckboxes = elements.fileList.querySelectorAll(
+              'input[type="checkbox"]'
+            );
+            entryCheckboxes.forEach((checkbox) => {
+              checkbox.setAttribute("tabindex", "0");
+
               // Add keyboard navigation for each checkbox
               checkbox.addEventListener("keydown", (e) => {
                 if (e.key === "ArrowDown") {
@@ -2750,64 +2781,68 @@
               });
             });
           }
-          
+
           // Add observer to make checkboxes focusable when file list updates
           const observer = new MutationObserver(() => {
             makeCheckboxesFocusable();
           });
-          
+
           observer.observe(elements.fileList, { childList: true });
-          
+
           // Initial setup
           makeCheckboxesFocusable();
         }
-        
+
         // Function to focus on the next element in the navigation cycle
         function focusOnNextElement(currentElement) {
           // Get all focusable elements in order
           const focusableElements = getFocusableElements();
-          
+
           // Find current element index
           const currentIndex = focusableElements.indexOf(currentElement);
-          
+
           // Calculate next index (circular)
           const nextIndex = (currentIndex + 1) % focusableElements.length;
-          
+
           // Focus on next element
           focusableElements[nextIndex].focus();
         }
-        
+
         // Function to focus on the previous element in the navigation cycle
         function focusOnPreviousElement(currentElement) {
           // Get all focusable elements in order
           const focusableElements = getFocusableElements();
-          
+
           // Find current element index
           const currentIndex = focusableElements.indexOf(currentElement);
-          
+
           // Calculate previous index (circular)
-          const prevIndex = (currentIndex - 1 + focusableElements.length) % focusableElements.length;
-          
+          const prevIndex =
+            (currentIndex - 1 + focusableElements.length) %
+            focusableElements.length;
+
           // Focus on previous element
           focusableElements[prevIndex].focus();
         }
-        
+
         // Function to get all focusable elements in the navigation cycle
         function getFocusableElements() {
           // Start with filter input
-          const elements = [document.getElementById('filter-input')];
-          
+          const elements = [document.getElementById("filter-input")];
+
           // Add select all checkbox
           elements.push(document.querySelector('th input[type="checkbox"]'));
-          
+
           // Add all visible entry checkboxes
-          const entryCheckboxes = Array.from(document.querySelectorAll('tbody input[type="checkbox"]'));
+          const entryCheckboxes = Array.from(
+            document.querySelectorAll('tbody input[type="checkbox"]')
+          );
           elements.push(...entryCheckboxes);
-          
+
           // Filter out any null elements
-          return elements.filter(el => el !== null);
+          return elements.filter((el) => el !== null);
         }
-        
+
         // Start the application
         init();
       });
