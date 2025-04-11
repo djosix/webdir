@@ -38,3 +38,19 @@ go run github.com/djosix/webdir@latest
 - Disable listing (`-no-list`)
 - Easy curl upload using `curl http://webdir/folder -F upload=@/path/to/the/file`
 - Drag-and-drop file upload
+
+## Keyboard Shortcuts
+
+- `ArrowDown`: Navigate to the next entry
+- `ArrowUp`: Navigate to the previous entry
+- `ArrowLeft`: Go to the parent directory
+- `ArrowRight`: Go to the selected directory
+- `Enter`: Open the selected file or go to the selected directory
+- `Escape`: Defocus any focused element
+- `f`: New file
+- `d`: New directory
+- `u`: Upload files
+- `m`: Move the selected file or directory
+- `c`: Copy the selected file or directory
+- `Backspace`/`Delete`: Delete the selected file or directory
+- `e`: Edit the selected file
