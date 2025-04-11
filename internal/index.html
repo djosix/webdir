@@ -1653,6 +1653,9 @@
 
           // Update button states
           updateButtonStates();
+          
+          // Update select all checkbox state
+          updateSelectAllCheckbox();
         }
 
         // Update breadcrumb navigation
@@ -1800,12 +1803,28 @@
         function updateSelectionCount() {
           elements.selectionCount.textContent = state.selected.size;
           elements.totalCount.textContent = state.entries.length;
-
+        }
+        
+        // Update select all checkbox state based on visible entries
+        function updateSelectAllCheckbox() {
+          const visibleEntries = elements.fileList.querySelectorAll('tr');
+          let checkedCount = 0;
+          
+          visibleEntries.forEach(row => {
+            const checkbox = row.querySelector('input[type="checkbox"]');
+            if (checkbox && checkbox.checked) {
+              checkedCount++;
+            }
+          });
+          
           // Update select all checkbox
-          if (state.selected.size === 0) {
+          if (visibleEntries.length === 0) {
             elements.selectAll.checked = false;
             elements.selectAll.indeterminate = false;
-          } else if (state.selected.size === state.entries.length) {
+          } else if (checkedCount === 0) {
+            elements.selectAll.checked = false;
+            elements.selectAll.indeterminate = false;
+          } else if (checkedCount === visibleEntries.length) {
             elements.selectAll.checked = true;
             elements.selectAll.indeterminate = false;
           } else {
@@ -1962,6 +1981,9 @@
 
             // Restore original entries
             state.entries = originalEntries;
+            
+            // Update select all checkbox state based on filtered entries
+            updateSelectAllCheckbox();
           } catch (error) {
             // Invalid regex, just use as string
             console.error("Filter error:", error);
@@ -2364,17 +2386,49 @@
 
         // Handle select all checkbox
         elements.selectAll.addEventListener("change", () => {
+          // Get all visible rows
+          const visibleRows = Array.from(elements.fileList.querySelectorAll('tr'));
+          
           if (elements.selectAll.checked) {
-            // Select all
-            state.entries.forEach((entry) => {
-              state.selected.add(entry.path);
+            // Select all visible entries (respecting filter)
+            visibleRows.forEach(row => {
+              const checkbox = row.querySelector('input[type="checkbox"]');
+              if (checkbox) {
+                checkbox.checked = true;
+                
+                // Find the corresponding entry in state.entries
+                const nameLink = row.querySelector('td:nth-child(2) a');
+                if (nameLink) {
+                  const entryName = nameLink.textContent;
+                  const entry = state.entries.find(e => e.name === entryName);
+                  if (entry) {
+                    state.selected.add(entry.path);
+                  }
+                }
+              }
             });
           } else {
-            // Deselect all
-            state.selected.clear();
+            // Deselect all visible entries
+            visibleRows.forEach(row => {
+              const checkbox = row.querySelector('input[type="checkbox"]');
+              if (checkbox) {
+                checkbox.checked = false;
+                
+                // Find the corresponding entry in state.entries
+                const nameLink = row.querySelector('td:nth-child(2) a');
+                if (nameLink) {
+                  const entryName = nameLink.textContent;
+                  const entry = state.entries.find(e => e.name === entryName);
+                  if (entry) {
+                    state.selected.delete(entry.path);
+                  }
+                }
+              }
+            });
           }
 
           updateUI();
+          applyFilter(elements.filterInput.value.trim());
         });
 
         // Handle filter input
