@@ -21,13 +21,13 @@ func parseArgs() internal.Options {
 	flag.BoolVar(&opts.NoList, "no-list", false, "disable directory listing")
 	flag.StringVar(&opts.BasePath, "base-path", "", "base web path for the application")
 	flag.StringVar(&opts.IndexFile, "index-file", "", "if a directory is requested, serve the index file by default otherwise directory listing")
-	flag.BoolVar(&opts.NoModify, "no-modify", false, "disable modification feature")
+	flag.BoolVar(&opts.ViewOnly, "view-only", false, "disable modification feature")
 	flag.BoolVar(&opts.CreateWritable, "create-writable", false, "create writable directories and files for other users")
 	flag.Int64Var(&opts.UploadLimitMiB, "upload-limit", 4096, "maximum upload size in MiB")
 
 	// Define short flags
 	flag.BoolVar(&opts.NoList, "L", false, "shorthand for -no-list")
-	flag.BoolVar(&opts.NoModify, "M", false, "shorthand for -no-modify")
+	flag.BoolVar(&opts.ViewOnly, "V", false, "shorthand for -view-only")
 	flag.BoolVar(&opts.CreateWritable, "W", false, "shorthand for -create-writable")
 	flag.StringVar(&opts.BasePath, "B", "", "shorthand for -base-path")
 	flag.StringVar(&opts.IndexFile, "I", "", "shorthand for -index-file")

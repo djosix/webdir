@@ -289,9 +289,8 @@ var directoryListingTemplate string
 func (s *Server) serveDirectoryListing(w http.ResponseWriter, r *http.Request, fsPath, urlPath string) {
 	htmlContent := directoryListingTemplate
 
-	// Add no-modify indicator if modifications are disabled
-	if s.Options.NoModify {
-		htmlContent = strings.Replace(htmlContent, "<body>", "<body data-no-modify=\"true\">", 1)
+	if s.Options.ViewOnly {
+		htmlContent = strings.ReplaceAll(htmlContent, "<body>", `<body class="view-only">`)
 	}
 
 	// Set proper caching headers to improve performance
@@ -581,7 +580,7 @@ func (s *Server) handleAPIMkdir(w http.ResponseWriter, r *http.Request) {
 	}
 
 	// Reject if modification is disabled
-	if s.Options.NoModify {
+	if s.Options.ViewOnly {
 		sendJSONError(w, "Modification is disabled", http.StatusForbidden)
 		return
 	}
@@ -642,7 +641,7 @@ func (s *Server) handleAPIUpload(w http.ResponseWriter, r *http.Request) {
 	}
 
 	// Reject if modification is disabled
-	if s.Options.NoModify {
+	if s.Options.ViewOnly {
 		sendJSONError(w, "Modification is disabled", http.StatusForbidden)
 		return
 	}
@@ -834,7 +833,7 @@ func (s *Server) handleAPICopy(w http.ResponseWriter, r *http.Request) {
 	}
 
 	// Reject if modification is disabled
-	if s.Options.NoModify {
+	if s.Options.ViewOnly {
 		sendJSONError(w, "Modification is disabled", http.StatusForbidden)
 		return
 	}
@@ -1029,7 +1028,7 @@ func (s *Server) handleAPIMove(w http.ResponseWriter, r *http.Request) {
 	}
 
 	// Reject if modification is disabled
-	if s.Options.NoModify {
+	if s.Options.ViewOnly {
 		sendJSONError(w, "Modification is disabled", http.StatusForbidden)
 		return
 	}
@@ -1137,7 +1136,7 @@ func (s *Server) handleAPIDelete(w http.ResponseWriter, r *http.Request) {
 	}
 
 	// Reject if modification is disabled
-	if s.Options.NoModify {
+	if s.Options.ViewOnly {
 		sendJSONError(w, "Modification is disabled", http.StatusForbidden)
 		return
 	}
@@ -1296,7 +1295,7 @@ func (s *Server) handleAPIEdit(w http.ResponseWriter, r *http.Request) {
 	// POST request: save file content
 	if r.Method == http.MethodPost {
 		// Reject if modification is disabled
-		if s.Options.NoModify {
+		if s.Options.ViewOnly {
 			sendJSONError(w, "Modification is disabled", http.StatusForbidden)
 			return
 		}

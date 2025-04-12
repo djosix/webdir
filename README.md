@@ -26,7 +26,7 @@ go run github.com/djosix/webdir@latest
 - Dark mode and light mode
 - Basic authentication using username and password (`-basic-auth USERNAME:PASSWORD`)
 - HTTPS using self-signed certificate (`-https`)
-- View-only mode (`-no-modify`)
+- View-only mode (`-view-only`)
 - Disable listing (`-no-list`)
 - Upload using `curl http://webdir/folder -F file=@/path/to/the/file`
 - Drag-and-drop file upload
