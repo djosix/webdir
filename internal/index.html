@@ -2797,6 +2797,15 @@
               return;
             }
 
+            // Prevent default for arrow keys if not focused on an input field
+            if (
+              ["ArrowLeft", "ArrowRight", "ArrowUp", "ArrowDown"].includes(
+                e.key
+              )
+            ) {
+              e.preventDefault();
+            }
+
             // Skip if modifier keys are pressed
             if (e.ctrlKey || e.metaKey || e.altKey) {
               return;
