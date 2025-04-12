@@ -2113,6 +2113,9 @@
             // Clear filter
             elements.filterInput.value = "";
 
+            // Disable parent button if we're at the root
+            elements.btnParent.disabled = path === "/";
+
             // Focus on the checkbox of the entry that matches the previous path
             document
               .querySelector(
