@@ -1,8 +1,8 @@
 # WebDir
 
-A simple web server for serving files and directories.
+A simple web server that serves files and directories and offers management functionality.
 
-<img width="1249" alt="image" src="https://github.com/user-attachments/assets/71113c36-d559-4a92-b0f4-7e8136121027" />
+<img width="1109" alt="image" src="https://github.com/user-attachments/assets/70d696f0-5f70-426d-8548-5b8fd66a7c53" />
 
 ## Quickstart
 
@@ -48,6 +48,7 @@ go run github.com/djosix/webdir@latest
 - `ArrowRight`: Go to the selected directory
 - `Enter`: Open the selected file or go to the selected directory
 - `Escape`: Defocus any focused element
+- `s`: Focus on search
 - `f`: New file
 - `d`: New directory
 - `u`: Upload files
