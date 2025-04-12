@@ -2,7 +2,7 @@
 
 A simple web server that serves files and directories and offers management functionality.
 
-<img width="1109" alt="image" src="https://github.com/user-attachments/assets/70d696f0-5f70-426d-8548-5b8fd66a7c53" />
+<img width="1044" alt="image" src="https://github.com/user-attachments/assets/1779924f-99d9-4ead-8fbb-f5e2b0668977" />
 
 ## Quickstart
 
