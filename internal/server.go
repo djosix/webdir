@@ -12,7 +12,6 @@ import (
 	"net/http"
 	"os"
 	"path/filepath"
-	"regexp"
 	"sort"
 	"strings"
 	"time"
@@ -359,18 +358,6 @@ func (s *Server) handleAPIList(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	// Get filter pattern if provided
-	filterPattern := r.URL.Query().Get("filter")
-	var re *regexp.Regexp
-	if filterPattern != "" {
-		var err error
-		re, err = regexp.Compile(filterPattern)
-		if err != nil {
-			sendJSONError(w, "Invalid filter pattern", http.StatusBadRequest)
-			return
-		}
-	}
-
 	// Check if the directory exists
 	info, err := os.Stat(fsPath)
 	if err != nil {
@@ -389,7 +376,7 @@ func (s *Server) handleAPIList(w http.ResponseWriter, r *http.Request) {
 	}
 
 	// Read directory contents
-	contents, err := s.readDirectoryContents(fsPath, re)
+	contents, err := s.readDirectoryContents(fsPath)
 	if err != nil {
 		slog.Warn("failed to read directory", "error", err)
 		sendJSONError(w, "Failed to read directory", http.StatusInternalServerError)
@@ -405,7 +392,7 @@ func (s *Server) handleAPIList(w http.ResponseWriter, r *http.Request) {
 }
 
 // readDirectoryContents reads and returns the contents of a directory
-func (s *Server) readDirectoryContents(dirPath string, filter *regexp.Regexp) (DirectoryContents, error) {
+func (s *Server) readDirectoryContents(dirPath string) (DirectoryContents, error) {
 	entries, err := os.ReadDir(dirPath)
 	if err != nil {
 		return DirectoryContents{}, err
@@ -424,11 +411,6 @@ func (s *Server) readDirectoryContents(dirPath string, filter *regexp.Regexp) (D
 	// Process each entry
 	for _, entry := range entries {
 		name := entry.Name()
-
-		// Apply filter if set
-		if filter != nil && !filter.MatchString(name) {
-			continue
-		}
 
 		entryPath := filepath.Join(dirPath, name)
 		info, err := entry.Info()
