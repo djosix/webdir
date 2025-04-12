@@ -440,9 +440,6 @@ func (s *Server) readDirectoryContents(dirPath string) (DirectoryContents, error
 
 // handleAPIRequest dispatches API requests to the appropriate handler
 func (s *Server) handleAPIRequest(w http.ResponseWriter, r *http.Request, apiType string) {
-	// Set common headers
-	w.Header().Set("Content-Type", "application/json")
-
 	// Dispatch to the appropriate handler based on apiType
 	switch apiType {
 	case "list":
@@ -466,7 +463,7 @@ func (s *Server) handleAPIRequest(w http.ResponseWriter, r *http.Request, apiTyp
 
 // sendJSONResponse sends a JSON response
 func sendJSONResponse(w http.ResponseWriter, data interface{}) {
-	w.Header().Set("Content-Type", "application/json")
+	w.Header().Set("Content-Type", "application/json; charset=utf-8")
 
 	jsonData, err := json.Marshal(data)
 	if err != nil {
@@ -479,7 +476,7 @@ func sendJSONResponse(w http.ResponseWriter, data interface{}) {
 
 // sendJSONError sends a JSON error response
 func sendJSONError(w http.ResponseWriter, message string, statusCode int) {
-	w.Header().Set("Content-Type", "application/json")
+	w.Header().Set("Content-Type", "application/json; charset=utf-8")
 	w.WriteHeader(statusCode)
 
 	response := APIResponse{

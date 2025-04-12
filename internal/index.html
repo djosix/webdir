@@ -284,6 +284,7 @@
       .file-table th {
         background-color: #f5f5f5;
         font-weight: 600;
+        -webkit-user-select: none;
         user-select: none;
         cursor: pointer;
         position: relative;
@@ -850,7 +851,12 @@
 
         <!-- Control bar -->
         <div class="control-bar">
-          <button id="btn-parent" class="btn btn-parent">
+          <button
+            type="button"
+            id="btn-parent"
+            class="btn btn-parent"
+            aria-label="Parent Directory"
+          >
             <svg
               xmlns="http://www.w3.org/2000/svg"
               viewBox="0 0 24 24"
@@ -891,7 +897,7 @@
             />
           </div>
 
-          <button id="btn-new-file" class="btn">
+          <button type="button" id="btn-new-file" class="btn">
             <svg
               xmlns="http://www.w3.org/2000/svg"
               viewBox="0 0 24 24"
@@ -913,7 +919,7 @@
             New File
           </button>
 
-          <button id="btn-new-directory" class="btn">
+          <button type="button" id="btn-new-directory" class="btn">
             <svg
               xmlns="http://www.w3.org/2000/svg"
               viewBox="0 0 24 24"
@@ -934,7 +940,7 @@
             New Directory
           </button>
 
-          <button id="btn-upload" class="btn">
+          <button type="button" id="btn-upload" class="btn">
             <svg
               xmlns="http://www.w3.org/2000/svg"
               viewBox="0 0 24 24"
@@ -953,7 +959,7 @@
             Upload
           </button>
 
-          <button id="btn-move" class="btn" disabled>
+          <button type="button" id="btn-move" class="btn" disabled>
             <svg
               xmlns="http://www.w3.org/2000/svg"
               viewBox="0 0 24 24"
@@ -975,7 +981,7 @@
             Move
           </button>
 
-          <button id="btn-copy" class="btn" disabled>
+          <button type="button" id="btn-copy" class="btn" disabled>
             <svg
               xmlns="http://www.w3.org/2000/svg"
               viewBox="0 0 24 24"
@@ -995,7 +1001,7 @@
             Copy
           </button>
 
-          <button id="btn-delete" class="btn" disabled>
+          <button type="button" id="btn-delete" class="btn" disabled>
             <svg
               xmlns="http://www.w3.org/2000/svg"
               viewBox="0 0 24 24"
@@ -1017,7 +1023,7 @@
             Delete
           </button>
 
-          <button id="btn-edit" class="btn" disabled>
+          <button type="button" id="btn-edit" class="btn" disabled>
             <svg
               xmlns="http://www.w3.org/2000/svg"
               viewBox="0 0 24 24"
@@ -1072,7 +1078,7 @@
       <div class="dialog">
         <div class="dialog-header">
           <h3 class="dialog-title">Create New File</h3>
-          <button class="dialog-close">&times;</button>
+          <button type="button" class="dialog-close">&times;</button>
         </div>
         <div class="dialog-body">
           <input
@@ -1084,8 +1090,10 @@
           />
         </div>
         <div class="dialog-footer">
-          <button class="btn btn-cancel">Cancel</button>
-          <button class="btn btn-confirm btn-primary">Create</button>
+          <button type="button" class="btn btn-cancel">Cancel</button>
+          <button type="button" class="btn btn-confirm btn-primary">
+            Create
+          </button>
         </div>
       </div>
     </div>
@@ -1095,7 +1103,7 @@
       <div class="dialog">
         <div class="dialog-header">
           <h3 class="dialog-title">Create New Directory</h3>
-          <button class="dialog-close">&times;</button>
+          <button type="button" class="dialog-close">&times;</button>
         </div>
         <div class="dialog-body">
           <input
@@ -1108,8 +1116,10 @@
           <p>Directory name can include '/' for multiple levels (mkdir -p)</p>
         </div>
         <div class="dialog-footer">
-          <button class="btn btn-cancel">Cancel</button>
-          <button class="btn btn-confirm btn-primary">Create</button>
+          <button type="button" class="btn btn-cancel">Cancel</button>
+          <button type="button" class="btn btn-confirm btn-primary">
+            Create
+          </button>
         </div>
       </div>
     </div>
@@ -1119,7 +1129,7 @@
       <div class="dialog">
         <div class="dialog-header">
           <h3 class="dialog-title">Move</h3>
-          <button class="dialog-close">&times;</button>
+          <button type="button" class="dialog-close">&times;</button>
         </div>
         <div class="dialog-body">
           <input
@@ -1131,8 +1141,10 @@
           />
         </div>
         <div class="dialog-footer">
-          <button class="btn btn-cancel">Cancel</button>
-          <button class="btn btn-confirm btn-primary">Move</button>
+          <button type="button" class="btn btn-cancel">Cancel</button>
+          <button type="button" class="btn btn-confirm btn-primary">
+            Move
+          </button>
         </div>
       </div>
     </div>
@@ -1142,7 +1154,7 @@
       <div class="dialog">
         <div class="dialog-header">
           <h3 class="dialog-title">Copy</h3>
-          <button class="dialog-close">&times;</button>
+          <button type="button" class="dialog-close">&times;</button>
         </div>
         <div class="dialog-body">
           <input
@@ -1154,8 +1166,10 @@
           />
         </div>
         <div class="dialog-footer">
-          <button class="btn btn-cancel">Cancel</button>
-          <button class="btn btn-confirm btn-primary">Copy</button>
+          <button type="button" class="btn btn-cancel">Cancel</button>
+          <button type="button" class="btn btn-confirm btn-primary">
+            Copy
+          </button>
         </div>
       </div>
     </div>
@@ -1165,7 +1179,7 @@
       <div class="dialog" style="max-width: 800px; width: 80%">
         <div class="dialog-header">
           <h3 class="dialog-title">Edit File</h3>
-          <button class="dialog-close">&times;</button>
+          <button type="button" class="dialog-close">&times;</button>
         </div>
         <div class="dialog-body">
           <!-- Indentation Settings -->
@@ -1180,7 +1194,11 @@
           >
             <label style="display: flex; align-items: center; gap: 5px">
               <span>Indentation:</span>
-              <select id="editor-indent-type" style="padding: 4px">
+              <select
+                aria-label="Indentation"
+                id="editor-indent-type"
+                style="padding: 4px"
+              >
                 <option value="tab">Tabs</option>
                 <option value="space">Spaces</option>
               </select>
@@ -1205,8 +1223,10 @@
           </div>
         </div>
         <div class="dialog-footer">
-          <button class="btn btn-cancel">Cancel</button>
-          <button class="btn btn-confirm btn-primary">Save</button>
+          <button type="button" class="btn btn-cancel">Cancel</button>
+          <button type="button" class="btn btn-confirm btn-primary">
+            Save
+          </button>
         </div>
       </div>
     </div>
@@ -1216,15 +1236,17 @@
       <div class="dialog">
         <div class="dialog-header">
           <h3 class="dialog-title">Confirm Delete</h3>
-          <button class="dialog-close">&times;</button>
+          <button type="button" class="dialog-close">&times;</button>
         </div>
         <div class="dialog-body">
           <p>Are you sure you want to delete the selected item(s)?</p>
           <p id="delete-count"></p>
         </div>
         <div class="dialog-footer">
-          <button class="btn btn-cancel">Cancel</button>
-          <button class="btn btn-confirm btn-primary">Delete</button>
+          <button type="button" class="btn btn-cancel">Cancel</button>
+          <button type="button" class="btn btn-confirm btn-primary">
+            Delete
+          </button>
         </div>
       </div>
     </div>
@@ -1909,6 +1931,7 @@
             checkbox.type = "checkbox";
             checkbox.className = "checkbox";
             checkbox.checked = state.selected.has(entry.path);
+            checkbox.name = "entry";
             checkbox.addEventListener("change", () => {
               if (checkbox.checked) {
                 state.selected.add(entry.path);
