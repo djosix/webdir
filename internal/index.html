@@ -1984,19 +1984,28 @@
             nameLink.title = entry.name;
             nameLink.href = entry.path;
             nameLink.addEventListener("click", (e) => {
-              e.preventDefault();
               if (entry.isDir) {
-                navigateTo(entry.path);
+                if (!e.metaKey && !e.ctrlKey) {
+                  e.preventDefault();
+                  navigateTo(entry.path);
+                }
               } else {
-                const maxWidth = Math.min(800, window.innerWidth * 0.9);
-                const maxHeight = Math.min(600, window.innerHeight * 0.9);
-                const left = (window.screen.width - maxWidth) / 2;
-                const top = (window.screen.height - maxHeight) / 2;
-                window.open(
-                  entry.path,
-                  "webdirPreview",
-                  `width=${maxWidth},height=${maxHeight},top=${top},left=${left},resizable=yes,scrollbars=yes`
-                );
+                if (e.shiftKey) {
+                  // Open in preview window
+                  e.preventDefault();
+                  const maxWidth = Math.min(800, window.innerWidth * 0.9);
+                  const maxHeight = Math.min(500, window.innerHeight * 0.9);
+                  const left = (window.screen.width - maxWidth) / 2;
+                  const top = (window.screen.height - maxHeight) / 2;
+                  window.open(
+                    entry.path,
+                    "webdirPreview",
+                    `width=${maxWidth},height=${maxHeight},top=${top},left=${left},resizable=yes,scrollbars=yes`
+                  );
+                } else {
+                  e.preventDefault();
+                  window.open(entry.path, "_blank");
+                }
               }
             });
             nameContainer.appendChild(nameLink);
