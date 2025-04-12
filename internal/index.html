@@ -666,11 +666,16 @@
 
       /* Drag and drop styles */
       .drag-drop-zone {
-        position: relative;
+        position: fixed;
+        top: 0;
+        left: 0;
+        width: 100vw;
+        height: 100vh;
+        z-index: -1;
       }
 
       .drag-drop-overlay {
-        position: absolute;
+        position: fixed;
         top: 0;
         left: 0;
         right: 0;
@@ -828,7 +833,9 @@
       }
     </style>
   </head>
-  <body class="drag-drop-zone">
+  <body>
+    <div class="drag-drop-zone"></div>
+
     <div class="container">
       <header>
         <h1>WebDir</h1>
