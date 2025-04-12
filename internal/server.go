@@ -742,6 +742,11 @@ func (s *Server) handleAPIUpload(w http.ResponseWriter, r *http.Request) {
 			var targetPath string
 			if destInfo != nil && destInfo.IsDir() {
 				targetPath = filepath.Join(destFsPath, fileHeader.Filename)
+				if !s.isPathSafe(targetPath) {
+					slog.Warn("upload target path is outside document root", "path", targetPath)
+					sendJSONError(w, "Forbidden", http.StatusForbidden)
+					return
+				}
 			} else {
 				targetPath = destFsPath
 			}
