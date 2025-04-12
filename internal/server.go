@@ -1,6 +1,7 @@
 package internal
 
 import (
+	"crypto/subtle"
 	"crypto/tls"
 	_ "embed"
 	"encoding/base64"
@@ -167,8 +168,7 @@ func (s *Server) authMiddleware(next http.Handler) http.Handler {
 			return
 		}
 
-		// Check credentials
-		if string(decoded) != s.Options.BasicAuth {
+		if subtle.ConstantTimeCompare(decoded, []byte(s.Options.BasicAuth)) != 1 {
 			w.Header().Set("WWW-Authenticate", `Basic realm="webdir"`)
 			http.Error(w, "Unauthorized", http.StatusUnauthorized)
 			return
