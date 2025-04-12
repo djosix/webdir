@@ -1301,6 +1301,37 @@
             }
           },
 
+          // Create file
+          async createFile(path) {
+            try {
+              const response = await fetch("/?api=edit", {
+                method: "POST",
+                headers: {
+                  "Content-Type": "application/json",
+                },
+                body: JSON.stringify({
+                  path,
+                  content: "",
+                }),
+              });
+
+              if (!response.ok) {
+                throw new Error(`HTTP error ${response.status}`);
+              }
+
+              const data = await response.json();
+              if (!data.success) {
+                throw new Error(data.message || "Unknown error");
+              }
+
+              showToast("success", "File created successfully");
+              return data;
+            } catch (error) {
+              showToast("error", `Failed to create file: ${error.message}`);
+              throw error;
+            }
+          },
+
           // Create directory
           async createDirectory(path) {
             try {
@@ -2171,14 +2202,12 @@
               basePath + (basePath.endsWith("/") ? "" : "/") + fileName;
 
             api
-              .saveFileContent(path, "")
+              .createFile(path)
               .then(() => {
                 navigateTo(state.currentPath);
-                showToast("success", "File created successfully");
               })
               .catch((error) => {
                 console.error("Create file error:", error);
-                showToast("error", `Failed to create file: ${error.message}`);
               });
 
             return true;
