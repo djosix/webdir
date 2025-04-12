@@ -185,12 +185,14 @@ func (s *Server) isPathSafe(path string) bool {
 	// Convert to absolute path
 	absPath, err := filepath.Abs(path)
 	if err != nil {
+		slog.Warn("failed to get absolute path", "path", path, "error", fmt.Sprintf("abs: %v", err))
 		return false
 	}
 
 	// Check if the path is within document root
 	docRoot, err := filepath.Abs(s.Options.DocumentRoot)
 	if err != nil {
+		slog.Warn("failed to get absolute path", "path", s.Options.DocumentRoot, "error", fmt.Sprintf("abs: %v", err))
 		return false
 	}
 
@@ -215,6 +217,7 @@ func (s *Server) handleRequest(w http.ResponseWriter, r *http.Request) {
 	if r.Method == http.MethodPost && strings.Contains(r.Header.Get("Content-Type"), "multipart/form-data") {
 		var sizeLimit int64 = 4 << 30 // 4 GiB
 		if err := r.ParseMultipartForm(sizeLimit); err != nil {
+			slog.Warn("failed to parse multipart form", "error", err)
 			http.Error(w, "File too large for upload", http.StatusBadRequest)
 			return
 		}
@@ -351,7 +354,8 @@ func (s *Server) handleAPIList(w http.ResponseWriter, r *http.Request) {
 	// Get the absolute filesystem path
 	fsPath := s.absolutePath(path)
 	if !s.isPathSafe(fsPath) {
-		sendJSONError(w, "Forbidden: Path outside document root", http.StatusForbidden)
+		slog.Warn("failed to list directory", "path", fsPath, "error", "path outside document root")
+		sendJSONError(w, "Forbidden", http.StatusForbidden)
 		return
 	}
 
@@ -387,7 +391,8 @@ func (s *Server) handleAPIList(w http.ResponseWriter, r *http.Request) {
 	// Read directory contents
 	contents, err := s.readDirectoryContents(fsPath, re)
 	if err != nil {
-		sendJSONError(w, "Failed to read directory: "+err.Error(), http.StatusInternalServerError)
+		slog.Warn("failed to read directory", "error", err)
+		sendJSONError(w, "Failed to read directory", http.StatusInternalServerError)
 		return
 	}
 
@@ -513,7 +518,8 @@ func sendJSONError(w http.ResponseWriter, message string, statusCode int) {
 
 	jsonData, err := json.Marshal(response)
 	if err != nil {
-		http.Error(w, "Failed to encode JSON", http.StatusInternalServerError)
+		slog.Warn("failed to marshal response to json", "error", fmt.Sprintf("marshal: %v", err))
+		http.Error(w, "Internal server error", http.StatusInternalServerError)
 		return
 	}
 
@@ -615,7 +621,8 @@ func (s *Server) handleAPIMkdir(w http.ResponseWriter, r *http.Request) {
 	// Parse the request body
 	var req APIRequest
 	if err := json.NewDecoder(r.Body).Decode(&req); err != nil {
-		sendJSONError(w, "Invalid request: "+err.Error(), http.StatusBadRequest)
+		slog.Warn("failed to parse request body", "error", err)
+		sendJSONError(w, "Invalid request", http.StatusBadRequest)
 		return
 	}
 
@@ -628,13 +635,15 @@ func (s *Server) handleAPIMkdir(w http.ResponseWriter, r *http.Request) {
 	// Get the absolute filesystem path
 	fsPath := s.absolutePath(req.Path)
 	if !s.isPathSafe(fsPath) {
-		sendJSONError(w, "Forbidden: Path outside document root", http.StatusForbidden)
+		slog.Warn("failed to create directory", "path", fsPath, "error", "path outside document root")
+		sendJSONError(w, "Forbidden", http.StatusForbidden)
 		return
 	}
 
 	// Create the directory with all parents (mkdir -p behavior)
 	if err := os.MkdirAll(fsPath, 0755); err != nil {
-		sendJSONError(w, "Failed to create directory: "+err.Error(), http.StatusInternalServerError)
+		slog.Warn("failed to create directory", "error", err)
+		sendJSONError(w, "Failed to create directory", http.StatusInternalServerError)
 		return
 	}
 
@@ -673,7 +682,8 @@ func (s *Server) handleAPIUpload(w http.ResponseWriter, r *http.Request) {
 	// Parse multipart form with 10MB limit (adjustable) if not already parsed
 	if r.MultipartForm == nil {
 		if err := r.ParseMultipartForm(10 << 20); err != nil {
-			sendJSONError(w, "Failed to parse upload form: "+err.Error(), http.StatusBadRequest)
+			slog.Warn("failed to parse upload form", "error", err)
+			sendJSONError(w, "Failed to parse upload form", http.StatusBadRequest)
 			return
 		}
 	}
@@ -692,7 +702,8 @@ func (s *Server) handleAPIUpload(w http.ResponseWriter, r *http.Request) {
 	// Convert to filesystem path and ensure it's safe
 	destFsPath := s.absolutePath(destPath)
 	if !s.isPathSafe(destFsPath) {
-		sendJSONError(w, "Forbidden: Path outside document root", http.StatusForbidden)
+		slog.Warn("failed to upload file", "path", destFsPath, "error", "destination path outside document root")
+		sendJSONError(w, "Forbidden", http.StatusForbidden)
 		return
 	}
 
@@ -704,20 +715,23 @@ func (s *Server) handleAPIUpload(w http.ResponseWriter, r *http.Request) {
 			if filepath.Ext(destFsPath) != "" {
 				// Create parent directories if they don't exist
 				if err := os.MkdirAll(filepath.Dir(destFsPath), 0755); err != nil {
-					sendJSONError(w, "Failed to create parent directories: "+err.Error(), http.StatusInternalServerError)
+					slog.Warn("failed to create parent directories", "error", err)
+					sendJSONError(w, "Failed to create parent directories", http.StatusInternalServerError)
 					return
 				}
 			} else {
 				// If no extension, treat as a directory and create it
 				if err := os.MkdirAll(destFsPath, 0755); err != nil {
-					sendJSONError(w, "Failed to create directory: "+err.Error(), http.StatusInternalServerError)
+					slog.Warn("failed to create directory", "error", err)
+					sendJSONError(w, "Failed to create directory", http.StatusInternalServerError)
 					return
 				}
 				// Update destInfo after creating the directory
 				destInfo, _ = os.Stat(destFsPath)
 			}
 		} else {
-			sendJSONError(w, "Failed to access destination: "+err.Error(), http.StatusInternalServerError)
+			slog.Warn("failed to access destination", "error", err)
+			sendJSONError(w, "Failed to access destination", http.StatusInternalServerError)
 			return
 		}
 	} else if destInfo.IsDir() {
@@ -736,7 +750,8 @@ func (s *Server) handleAPIUpload(w http.ResponseWriter, r *http.Request) {
 			// Open the uploaded file
 			file, err := fileHeader.Open()
 			if err != nil {
-				sendJSONError(w, "Failed to open uploaded file: "+err.Error(), http.StatusInternalServerError)
+				slog.Warn("failed to open uploaded file", "error", err)
+				sendJSONError(w, "Failed to open uploaded file", http.StatusInternalServerError)
 				return
 			}
 			defer file.Close()
@@ -752,7 +767,8 @@ func (s *Server) handleAPIUpload(w http.ResponseWriter, r *http.Request) {
 			// Create the destination file
 			destFile, err := os.Create(targetPath)
 			if err != nil {
-				sendJSONError(w, "Failed to create file: "+err.Error(), http.StatusInternalServerError)
+				slog.Warn("failed to create file", "error", err)
+				sendJSONError(w, "Failed to create file", http.StatusInternalServerError)
 				return
 			}
 			defer destFile.Close()
@@ -760,7 +776,8 @@ func (s *Server) handleAPIUpload(w http.ResponseWriter, r *http.Request) {
 			// Copy the file contents using io.Copy
 			bytesWritten, err := io.Copy(destFile, file)
 			if err != nil {
-				sendJSONError(w, "Failed to save file: "+err.Error(), http.StatusInternalServerError)
+				slog.Warn("failed to save file", "error", err)
+				sendJSONError(w, "Failed to save file", http.StatusInternalServerError)
 				return
 			}
 			// Log the file size
@@ -793,14 +810,16 @@ func (s *Server) handleAPIUpload(w http.ResponseWriter, r *http.Request) {
 		// Create the destination file
 		destFile, err := os.Create(targetPath)
 		if err != nil {
-			sendJSONError(w, "Failed to create file: "+err.Error(), http.StatusInternalServerError)
+			slog.Warn("failed to create file", "error", err)
+			sendJSONError(w, "Failed to create file", http.StatusInternalServerError)
 			return
 		}
 		defer destFile.Close()
 
 		// Copy the request body to the file
 		if _, err := io.Copy(destFile, r.Body); err != nil {
-			sendJSONError(w, "Failed to save file: "+err.Error(), http.StatusInternalServerError)
+			slog.Warn("failed to save file", "error", err)
+			sendJSONError(w, "Failed to save file", http.StatusInternalServerError)
 			return
 		}
 
@@ -844,7 +863,8 @@ func (s *Server) handleAPICopy(w http.ResponseWriter, r *http.Request) {
 	// Parse the request body
 	var req APIRequest
 	if err := json.NewDecoder(r.Body).Decode(&req); err != nil {
-		sendJSONError(w, "Invalid request: "+err.Error(), http.StatusBadRequest)
+		slog.Warn("failed to parse request", "error", err)
+		sendJSONError(w, "Invalid request", http.StatusBadRequest)
 		return
 	}
 
@@ -867,7 +887,8 @@ func (s *Server) handleAPICopy(w http.ResponseWriter, r *http.Request) {
 	// Convert target to filesystem path and ensure it's safe
 	targetFsPath := s.absolutePath(req.Target)
 	if !s.isPathSafe(targetFsPath) {
-		sendJSONError(w, "Forbidden: Target path outside document root", http.StatusForbidden)
+		slog.Warn("failed to copy", "path", targetFsPath, "error", "target path outside document root")
+		sendJSONError(w, "Forbidden", http.StatusForbidden)
 		return
 	}
 
@@ -877,13 +898,12 @@ func (s *Server) handleAPICopy(w http.ResponseWriter, r *http.Request) {
 
 	// Process each source path
 	copied := 0
-	errors := []string{}
 
 	for _, path := range paths {
 		// Convert to filesystem path and ensure it's safe
 		sourceFsPath := s.absolutePath(path)
 		if !s.isPathSafe(sourceFsPath) {
-			errors = append(errors, fmt.Sprintf("Forbidden: Source path outside document root: %s", path))
+			slog.Warn("failed to copy", "path", path, "error", "source path outside document root")
 			continue
 		}
 
@@ -898,14 +918,14 @@ func (s *Server) handleAPICopy(w http.ResponseWriter, r *http.Request) {
 
 		// Create parent directories if they don't exist
 		if err := os.MkdirAll(filepath.Dir(finalTargetPath), 0755); err != nil {
-			errors = append(errors, fmt.Sprintf("Failed to create parent directories for %s: %s", path, err.Error()))
+			slog.Warn("failed to copy", "path", path, "error", fmt.Sprintf("create parent directories: %v", err))
 			continue
 		}
 
 		// Get source file info
 		sourceInfo, err := os.Stat(sourceFsPath)
 		if err != nil {
-			errors = append(errors, fmt.Sprintf("Failed to access source %s: %s", path, err.Error()))
+			slog.Warn("failed to copy", "path", path, "error", fmt.Sprintf("access source: %v", err))
 			continue
 		}
 
@@ -913,13 +933,13 @@ func (s *Server) handleAPICopy(w http.ResponseWriter, r *http.Request) {
 		if sourceInfo.IsDir() {
 			// Copy directory recursively
 			if err := copyDir(sourceFsPath, finalTargetPath); err != nil {
-				errors = append(errors, fmt.Sprintf("Failed to copy directory %s: %s", path, err.Error()))
+				slog.Warn("failed to copy", "path", path, "error", fmt.Sprintf("copy directory: %v", err))
 				continue
 			}
 		} else {
 			// Copy file
 			if err := copyFile(sourceFsPath, finalTargetPath); err != nil {
-				errors = append(errors, fmt.Sprintf("Failed to copy file %s: %s", path, err.Error()))
+				slog.Warn("failed to copy", "path", path, "error", fmt.Sprintf("copy file: %v", err))
 				continue
 			}
 		}
@@ -928,14 +948,14 @@ func (s *Server) handleAPICopy(w http.ResponseWriter, r *http.Request) {
 	}
 
 	// Send response
-	if len(errors) > 0 {
+	if copied < len(paths) {
 		sendJSONResponse(w, APIResponse{
 			Success: copied > 0,
-			Message: fmt.Sprintf("Copied %d out of %d items. Errors: %s", copied, len(paths), strings.Join(errors, "; ")),
+			Message: fmt.Sprintf("Copied %d out of %d items.", copied, len(paths)),
 			Data: map[string]interface{}{
 				"copied": copied,
 				"total":  len(paths),
-				"errors": errors,
+				"errors": len(paths) - copied,
 			},
 		})
 	} else {
@@ -1038,7 +1058,8 @@ func (s *Server) handleAPIMove(w http.ResponseWriter, r *http.Request) {
 	// Parse the request body
 	var req APIRequest
 	if err := json.NewDecoder(r.Body).Decode(&req); err != nil {
-		sendJSONError(w, "Invalid request: "+err.Error(), http.StatusBadRequest)
+		slog.Warn("failed to parse request", "error", err)
+		sendJSONError(w, "Invalid request", http.StatusBadRequest)
 		return
 	}
 
@@ -1061,7 +1082,8 @@ func (s *Server) handleAPIMove(w http.ResponseWriter, r *http.Request) {
 	// Convert target to filesystem path and ensure it's safe
 	targetFsPath := s.absolutePath(req.Target)
 	if !s.isPathSafe(targetFsPath) {
-		sendJSONError(w, "Forbidden: Target path outside document root", http.StatusForbidden)
+		slog.Warn("failed to move", "path", targetFsPath, "error", "target path outside document root")
+		sendJSONError(w, "Forbidden", http.StatusForbidden)
 		return
 	}
 
@@ -1071,13 +1093,12 @@ func (s *Server) handleAPIMove(w http.ResponseWriter, r *http.Request) {
 
 	// Process each source path
 	moved := 0
-	errors := []string{}
 
 	for _, path := range paths {
 		// Convert to filesystem path and ensure it's safe
 		sourceFsPath := s.absolutePath(path)
 		if !s.isPathSafe(sourceFsPath) {
-			errors = append(errors, fmt.Sprintf("Forbidden: Source path outside document root: %s", path))
+			slog.Warn("failed to move", "path", path, "error", "source path outside document root")
 			continue
 		}
 
@@ -1092,13 +1113,13 @@ func (s *Server) handleAPIMove(w http.ResponseWriter, r *http.Request) {
 
 		// Create parent directories if they don't exist
 		if err := os.MkdirAll(filepath.Dir(finalTargetPath), 0755); err != nil {
-			errors = append(errors, fmt.Sprintf("Failed to create parent directories for %s: %s", path, err.Error()))
+			slog.Warn("failed to move", "path", path, "error", fmt.Sprintf("create parent directories: %v", err))
 			continue
 		}
 
 		// Perform the move operation
 		if err := os.Rename(sourceFsPath, finalTargetPath); err != nil {
-			errors = append(errors, fmt.Sprintf("Failed to move %s: %s", path, err.Error()))
+			slog.Warn("failed to move", "path", path, "error", fmt.Sprintf("move: %v", err))
 			continue
 		}
 
@@ -1106,14 +1127,14 @@ func (s *Server) handleAPIMove(w http.ResponseWriter, r *http.Request) {
 	}
 
 	// Send response
-	if len(errors) > 0 {
+	if moved < len(paths) {
 		sendJSONResponse(w, APIResponse{
 			Success: moved > 0,
-			Message: fmt.Sprintf("Moved %d out of %d items. Errors: %s", moved, len(paths), strings.Join(errors, "; ")),
+			Message: fmt.Sprintf("Moved %d out of %d items", moved, len(paths)),
 			Data: map[string]interface{}{
 				"moved":  moved,
 				"total":  len(paths),
-				"errors": errors,
+				"errors": len(paths) - moved,
 			},
 		})
 	} else {
@@ -1145,7 +1166,8 @@ func (s *Server) handleAPIDelete(w http.ResponseWriter, r *http.Request) {
 	// Parse the request body
 	var req APIRequest
 	if err := json.NewDecoder(r.Body).Decode(&req); err != nil {
-		sendJSONError(w, "Invalid request: "+err.Error(), http.StatusBadRequest)
+		slog.Warn("failed to parse request", "error", err)
+		sendJSONError(w, "Invalid request", http.StatusBadRequest)
 		return
 	}
 
@@ -1163,13 +1185,12 @@ func (s *Server) handleAPIDelete(w http.ResponseWriter, r *http.Request) {
 
 	// Process each path
 	deleted := 0
-	errors := []string{}
 
 	for _, path := range paths {
 		// Convert to filesystem path and ensure it's safe
 		fsPath := s.absolutePath(path)
 		if !s.isPathSafe(fsPath) {
-			errors = append(errors, fmt.Sprintf("Forbidden: Path outside document root: %s", path))
+			slog.Warn("failed to delete", "path", path, "error", "path outside document root")
 			continue
 		}
 
@@ -1177,9 +1198,9 @@ func (s *Server) handleAPIDelete(w http.ResponseWriter, r *http.Request) {
 		info, err := os.Stat(fsPath)
 		if err != nil {
 			if os.IsNotExist(err) {
-				errors = append(errors, fmt.Sprintf("Path does not exist: %s", path))
+				slog.Warn("failed to delete", "path", path, "error", "path does not exist")
 			} else {
-				errors = append(errors, fmt.Sprintf("Failed to access %s: %s", path, err.Error()))
+				slog.Warn("failed to delete", "path", path, "error", fmt.Sprintf("access: %v", err))
 			}
 			continue
 		}
@@ -1193,7 +1214,7 @@ func (s *Server) handleAPIDelete(w http.ResponseWriter, r *http.Request) {
 		}
 
 		if err2 != nil {
-			errors = append(errors, fmt.Sprintf("Failed to delete %s: %s", path, err2.Error()))
+			slog.Warn("failed to delete", "path", path, "error", fmt.Sprintf("delete: %v", err2))
 			continue
 		}
 
@@ -1201,14 +1222,14 @@ func (s *Server) handleAPIDelete(w http.ResponseWriter, r *http.Request) {
 	}
 
 	// Send response
-	if len(errors) > 0 {
+	if deleted < len(paths) {
 		sendJSONResponse(w, APIResponse{
 			Success: deleted > 0,
-			Message: fmt.Sprintf("Deleted %d out of %d items. Errors: %s", deleted, len(paths), strings.Join(errors, "; ")),
+			Message: fmt.Sprintf("Deleted %d out of %d items", deleted, len(paths)),
 			Data: map[string]interface{}{
 				"deleted": deleted,
 				"total":   len(paths),
-				"errors":  errors,
+				"errors":  len(paths) - deleted,
 			},
 		})
 	} else {
@@ -1245,7 +1266,8 @@ func (s *Server) handleAPIEdit(w http.ResponseWriter, r *http.Request) {
 		// Get the absolute filesystem path
 		fsPath := s.absolutePath(path)
 		if !s.isPathSafe(fsPath) {
-			sendJSONError(w, "Forbidden: Path outside document root", http.StatusForbidden)
+			slog.Warn("failed to get file content", "path", fsPath, "error", "path outside document root")
+			sendJSONError(w, "Forbidden", http.StatusForbidden)
 			return
 		}
 
@@ -1255,7 +1277,8 @@ func (s *Server) handleAPIEdit(w http.ResponseWriter, r *http.Request) {
 			if os.IsNotExist(err) {
 				sendJSONError(w, "File not found", http.StatusNotFound)
 			} else {
-				sendJSONError(w, "Failed to access file: "+err.Error(), http.StatusInternalServerError)
+				slog.Warn("failed to get file info", "path", path, "error", fmt.Sprintf("access: %v", err))
+				sendJSONError(w, "Failed to access file", http.StatusInternalServerError)
 			}
 			return
 		}
@@ -1274,7 +1297,8 @@ func (s *Server) handleAPIEdit(w http.ResponseWriter, r *http.Request) {
 		// Read the file content
 		content, err := os.ReadFile(fsPath)
 		if err != nil {
-			sendJSONError(w, "Failed to read file: "+err.Error(), http.StatusInternalServerError)
+			slog.Warn("failed to read file", "path", path, "error", fmt.Sprintf("read: %v", err))
+			sendJSONError(w, "Failed to read file", http.StatusInternalServerError)
 			return
 		}
 
@@ -1301,7 +1325,8 @@ func (s *Server) handleAPIEdit(w http.ResponseWriter, r *http.Request) {
 		// Parse the request body
 		var req APIRequest
 		if err := json.NewDecoder(r.Body).Decode(&req); err != nil {
-			sendJSONError(w, "Invalid request: "+err.Error(), http.StatusBadRequest)
+			slog.Warn("failed to parse request", "error", fmt.Sprintf("parse: %v", err))
+			sendJSONError(w, "Invalid request", http.StatusBadRequest)
 			return
 		}
 
@@ -1314,7 +1339,8 @@ func (s *Server) handleAPIEdit(w http.ResponseWriter, r *http.Request) {
 		// Get the absolute filesystem path
 		fsPath := s.absolutePath(req.Path)
 		if !s.isPathSafe(fsPath) {
-			sendJSONError(w, "Forbidden: Path outside document root", http.StatusForbidden)
+			slog.Warn("failed to save file", "path", fsPath, "error", "path outside document root")
+			sendJSONError(w, "Forbidden", http.StatusForbidden)
 			return
 		}
 
@@ -1327,13 +1353,15 @@ func (s *Server) handleAPIEdit(w http.ResponseWriter, r *http.Request) {
 
 		// Create parent directories if they don't exist
 		if err := os.MkdirAll(filepath.Dir(fsPath), 0755); err != nil {
-			sendJSONError(w, "Failed to create parent directories: "+err.Error(), http.StatusInternalServerError)
+			slog.Warn("failed to create parent directories", "error", fmt.Sprintf("mkdir: %v", err))
+			sendJSONError(w, "Failed to create parent directories", http.StatusInternalServerError)
 			return
 		}
 
 		// Write the content to the file
 		if err := os.WriteFile(fsPath, []byte(req.Content), 0644); err != nil {
-			sendJSONError(w, "Failed to write file: "+err.Error(), http.StatusInternalServerError)
+			slog.Warn("failed to write file", "error", fmt.Sprintf("write: %v", err))
+			sendJSONError(w, "Failed to write file", http.StatusInternalServerError)
 			return
 		}
 
@@ -1341,7 +1369,7 @@ func (s *Server) handleAPIEdit(w http.ResponseWriter, r *http.Request) {
 		if s.Options.CreateWritable {
 			if err := os.Chmod(fsPath, 0666); err != nil {
 				// Log but don't fail the request
-				slog.Warn("failed to set file permissions", "error", err)
+				slog.Warn("failed to set file permissions", "error", fmt.Sprintf("chmod: %v", err))
 			}
 		}
 
