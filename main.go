@@ -23,6 +23,7 @@ func parseArgs() internal.Options {
 	flag.StringVar(&opts.IndexFile, "index-file", "", "if a directory is requested, serve the index file by default otherwise directory listing")
 	flag.BoolVar(&opts.NoModify, "no-modify", false, "disable modification feature")
 	flag.BoolVar(&opts.CreateWritable, "create-writable", false, "create writable directories and files for other users")
+	flag.Int64Var(&opts.UploadLimitMiB, "upload-limit", 4096, "maximum upload size in MiB")
 
 	// Define short flags
 	flag.BoolVar(&opts.NoList, "L", false, "shorthand for -no-list")

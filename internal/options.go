@@ -11,4 +11,5 @@ type Options struct {
 	BasePath       string
 	IndexFile      string
 	DocumentRoot   string
+	UploadLimitMiB int64
 }

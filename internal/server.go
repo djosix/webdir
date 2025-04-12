@@ -214,17 +214,6 @@ func (s *Server) handleRequest(w http.ResponseWriter, r *http.Request) {
 
 	// Check for curl upload using multipart/form-data with 'upload' field
 	if r.Method == http.MethodPost && strings.Contains(r.Header.Get("Content-Type"), "multipart/form-data") {
-		var sizeLimit int64 = 4 << 30 // 4 GiB
-		if err := r.ParseMultipartForm(sizeLimit); err != nil {
-			slog.Warn("failed to parse multipart form", "error", err)
-			http.Error(w, "File too large for upload", http.StatusBadRequest)
-			return
-		}
-		if r.MultipartForm == nil || len(r.MultipartForm.File["upload"]) == 0 {
-			http.Error(w, "Invalid upload request", http.StatusBadRequest)
-			return
-		}
-		// Handle as a file upload request
 		s.handleAPIRequest(w, r, "upload")
 		return
 	}
@@ -661,13 +650,11 @@ func (s *Server) handleAPIUpload(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	// Parse multipart form with 10MB limit (adjustable) if not already parsed
-	if r.MultipartForm == nil {
-		if err := r.ParseMultipartForm(10 << 20); err != nil {
-			slog.Warn("failed to parse upload form", "error", err)
-			sendJSONError(w, "Failed to parse upload form", http.StatusBadRequest)
-			return
-		}
+	// Parse multipart form with upload limit (adjustable) if not already parsed
+	if err := r.ParseMultipartForm(32 << 20); err != nil {
+		slog.Warn("failed to parse upload form", "error", err)
+		sendJSONError(w, "Failed to parse upload form", http.StatusBadRequest)
+		return
 	}
 
 	// Get the destination path from form or URL query parameter
@@ -722,6 +709,8 @@ func (s *Server) handleAPIUpload(w http.ResponseWriter, r *http.Request) {
 		// Destination exists but is not a directory - we'll replace the file
 	}
 
+	sizeLimit := s.Options.UploadLimitMiB << 20 // MiB to bytes
+
 	// Process uploaded files
 	fileCount := 0
 	var uploadedFiles []string
@@ -729,6 +718,12 @@ func (s *Server) handleAPIUpload(w http.ResponseWriter, r *http.Request) {
 	// Handle files from multipart form
 	for _, fileHeaders := range r.MultipartForm.File {
 		for _, fileHeader := range fileHeaders {
+			if fileHeader.Size > sizeLimit {
+				slog.Warn("upload file too large", "filename", fileHeader.Filename, "size", fileHeader.Size, "limit", sizeLimit)
+				sendJSONError(w, "File too large", http.StatusBadRequest)
+				return
+			}
+
 			// Open the uploaded file
 			file, err := fileHeader.Open()
 			if err != nil {
