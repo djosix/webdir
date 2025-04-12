@@ -7,7 +7,7 @@ import (
 	"encoding/json"
 	"fmt"
 	"io"
-	"log"
+	"log/slog"
 	"mime"
 	"net/http"
 	"os"
@@ -48,28 +48,28 @@ func (s *Server) Start() {
 	}
 
 	// Start server
-	log.Printf("Starting webdir server on %s (Document Root: %s)", addr, s.Options.DocumentRoot)
+	slog.Info("start server", "addr", addr, "root", s.Options.DocumentRoot)
 	var serveErr error
 
 	if s.Options.HTTPS {
 		// Load the embedded self-signed certificate
 		cert, err := newSelfSignedCert()
 		if err != nil {
-			log.Fatalf("Failed to load TLS certificate: %v", err)
+			slog.Error("failed to load tls certificate", "error", err)
 		}
 
 		srv.TLSConfig = &tls.Config{
 			Certificates: []tls.Certificate{cert},
 		}
 
-		log.Printf("HTTPS enabled with self-signed certificate")
+		slog.Info("https enabled with self-signed certificate")
 		serveErr = srv.ListenAndServeTLS("", "")
 	} else {
 		serveErr = srv.ListenAndServe()
 	}
 
 	if serveErr != nil {
-		log.Fatalf("Server error: %v", serveErr)
+		slog.Error("server shutdown", "error", serveErr)
 	}
 }
 
@@ -642,7 +642,7 @@ func (s *Server) handleAPIMkdir(w http.ResponseWriter, r *http.Request) {
 	if s.Options.CreateWritable {
 		if err := os.Chmod(fsPath, 0777); err != nil {
 			// Log but don't fail the request
-			fmt.Printf("Warning: Failed to set directory permissions: %v\n", err)
+			slog.Warn("failed to set directory permissions", "error", err)
 		}
 	}
 
@@ -764,13 +764,13 @@ func (s *Server) handleAPIUpload(w http.ResponseWriter, r *http.Request) {
 				return
 			}
 			// Log the file size
-			fmt.Printf("Uploaded file %s (%d bytes)\n", fileHeader.Filename, bytesWritten)
+			slog.Debug("uploaded file", "filename", fileHeader.Filename, "size", bytesWritten, "path", targetPath)
 
 			// If create writable flag is set, make the file writable for others
 			if s.Options.CreateWritable {
 				if err := os.Chmod(targetPath, 0666); err != nil {
 					// Log but don't fail the request
-					fmt.Printf("Warning: Failed to set file permissions: %v\n", err)
+					slog.Warn("failed to set file permissions", "error", err)
 				}
 			}
 
@@ -808,7 +808,7 @@ func (s *Server) handleAPIUpload(w http.ResponseWriter, r *http.Request) {
 		if s.Options.CreateWritable {
 			if err := os.Chmod(targetPath, 0666); err != nil {
 				// Log but don't fail the request
-				fmt.Printf("Warning: Failed to set file permissions: %v\n", err)
+				slog.Warn("failed to set file permissions", "error", err)
 			}
 		}
 
@@ -1341,7 +1341,7 @@ func (s *Server) handleAPIEdit(w http.ResponseWriter, r *http.Request) {
 		if s.Options.CreateWritable {
 			if err := os.Chmod(fsPath, 0666); err != nil {
 				// Log but don't fail the request
-				fmt.Printf("Warning: Failed to set file permissions: %v\n", err)
+				slog.Warn("failed to set file permissions", "error", err)
 			}
 		}
 

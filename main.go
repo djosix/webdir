@@ -3,7 +3,7 @@ package main
 import (
 	"flag"
 	"fmt"
-	"log"
+	"log/slog"
 	"os"
 	"path/filepath"
 	"strings"
@@ -54,7 +54,7 @@ func parseArgs() internal.Options {
 	// Resolve absolute path for document root
 	absPath, err := filepath.Abs(opts.DocumentRoot)
 	if err != nil {
-		log.Fatalf("Error resolving document root path: %v", err)
+		panic("cannot resolve document root path")
 	}
 	opts.DocumentRoot = absPath
 
@@ -67,6 +67,10 @@ func parseArgs() internal.Options {
 	}
 
 	return opts
+}
+
+func init() {
+	slog.SetDefault(slog.New(slog.NewTextHandler(os.Stdout, nil)))
 }
 
 func main() {
