@@ -21,22 +21,14 @@ go run github.com/djosix/webdir@latest
 
 ## Features
 
-- Lists directory entries
-- Operations:
-    - Create directory
-    - Create empty file
-    - Upload files
-    - Move/Rename entries
-    - Copy entries
-    - Delete entries
-    - Edit text files (supports indentation)
-- Opens files in a popup window (click) or a new tab (Ctrl-click)
+- Operations: List, Create, Upload, Move, Copy, Delete, Edit
+- Open file in a popup window (Shift-click) or a new tab (click or press Enter on focused file)
 - Dark mode and light mode
 - Basic authentication using username and password (`-basic-auth USERNAME:PASSWORD`)
 - HTTPS using self-signed certificate (`-https`)
 - View-only mode (`-no-modify`)
 - Disable listing (`-no-list`)
-- Easy curl upload using `curl http://webdir/folder -F upload=@/path/to/the/file`
+- Upload using `curl http://webdir/folder -F file=@/path/to/the/file`
 - Drag-and-drop file upload
 - Keyboard shortcuts for efficient operations
 
