@@ -151,26 +151,26 @@ func (s *Server) authMiddleware(next http.Handler) http.Handler {
 		auth := r.Header.Get("Authorization")
 		if auth == "" {
 			w.Header().Set("WWW-Authenticate", `Basic realm="webdir"`)
-			http.Error(w, "Unauthorized", http.StatusUnauthorized)
+			sendJSONError(w, "Unauthorized", http.StatusUnauthorized)
 			return
 		}
 
 		// Decode the Authorization header
 		prefix := "Basic "
 		if !strings.HasPrefix(auth, prefix) {
-			http.Error(w, "Invalid Authorization header", http.StatusUnauthorized)
+			sendJSONError(w, "Invalid Authorization header", http.StatusUnauthorized)
 			return
 		}
 
 		decoded, err := base64.StdEncoding.DecodeString(auth[len(prefix):])
 		if err != nil {
-			http.Error(w, "Invalid Authorization header", http.StatusUnauthorized)
+			sendJSONError(w, "Invalid Authorization header", http.StatusUnauthorized)
 			return
 		}
 
 		if subtle.ConstantTimeCompare(decoded, []byte(s.Options.BasicAuth)) != 1 {
 			w.Header().Set("WWW-Authenticate", `Basic realm="webdir"`)
-			http.Error(w, "Unauthorized", http.StatusUnauthorized)
+			sendJSONError(w, "Unauthorized", http.StatusUnauthorized)
 			return
 		}
 
@@ -220,7 +220,7 @@ func (s *Server) handleRequest(w http.ResponseWriter, r *http.Request) {
 
 	// Check if the path is safe
 	if !s.isPathSafe(fsPath) {
-		http.Error(w, "Forbidden", http.StatusForbidden)
+		sendJSONError(w, "Forbidden", http.StatusForbidden)
 		return
 	}
 
@@ -228,9 +228,9 @@ func (s *Server) handleRequest(w http.ResponseWriter, r *http.Request) {
 	info, err := os.Stat(fsPath)
 	if err != nil {
 		if os.IsNotExist(err) {
-			http.Error(w, "Not Found", http.StatusNotFound)
+			sendJSONError(w, "Not Found", http.StatusNotFound)
 		} else {
-			http.Error(w, "Internal Server Error", http.StatusInternalServerError)
+			sendJSONError(w, "Internal Server Error", http.StatusInternalServerError)
 		}
 		return
 	}
@@ -248,7 +248,7 @@ func (s *Server) handleRequest(w http.ResponseWriter, r *http.Request) {
 
 		// Handle directory listing
 		if s.Options.NoList {
-			http.Error(w, "Forbidden", http.StatusForbidden)
+			sendJSONError(w, "Forbidden", http.StatusForbidden)
 			return
 		}
 
@@ -260,7 +260,7 @@ func (s *Server) handleRequest(w http.ResponseWriter, r *http.Request) {
 	// Serve file directly using ServeContent to prevent unwanted redirections
 	file, err := os.Open(fsPath)
 	if err != nil {
-		http.Error(w, "Error opening file", http.StatusInternalServerError)
+		sendJSONError(w, "Error opening file", http.StatusInternalServerError)
 		return
 	}
 	defer file.Close()
@@ -268,7 +268,7 @@ func (s *Server) handleRequest(w http.ResponseWriter, r *http.Request) {
 	// Get file information for the modtime
 	stat, err := file.Stat()
 	if err != nil {
-		http.Error(w, "Error getting file info", http.StatusInternalServerError)
+		sendJSONError(w, "Error getting file info", http.StatusInternalServerError)
 		return
 	}
 
@@ -470,7 +470,7 @@ func sendJSONResponse(w http.ResponseWriter, data interface{}) {
 
 	jsonData, err := json.Marshal(data)
 	if err != nil {
-		http.Error(w, "Failed to encode JSON", http.StatusInternalServerError)
+		sendJSONError(w, "Failed to encode JSON", http.StatusInternalServerError)
 		return
 	}
 
@@ -490,7 +490,7 @@ func sendJSONError(w http.ResponseWriter, message string, statusCode int) {
 	jsonData, err := json.Marshal(response)
 	if err != nil {
 		slog.Warn("failed to marshal response to json", "error", fmt.Sprintf("marshal: %v", err))
-		http.Error(w, "Internal server error", http.StatusInternalServerError)
+		w.Write([]byte(`{"success":false,"message":"Internal server error"}`))
 		return
 	}
 
