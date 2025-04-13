@@ -6,9 +6,10 @@ type Options struct {
 	HTTPS          bool
 	BasicAuth      string
 	NoList         bool
-	NoModify       bool
+	ViewOnly       bool
 	CreateWritable bool
 	BasePath       string
 	IndexFile      string
 	DocumentRoot   string
+	UploadLimitMiB int64
 }

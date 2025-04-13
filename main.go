@@ -2,8 +2,7 @@ package main
 
 import (
 	"flag"
-	"fmt"
-	"log"
+	"log/slog"
 	"os"
 	"path/filepath"
 	"strings"
@@ -14,6 +13,7 @@ import (
 func parseArgs() internal.Options {
 	opts := internal.Options{}
 
+	flag.StringVar(&opts.DocumentRoot, "root", ".", "document root")
 	flag.StringVar(&opts.Host, "host", "0.0.0.0", "bind host")
 	flag.IntVar(&opts.Port, "port", 9999, "bind port")
 	flag.BoolVar(&opts.HTTPS, "https", false, "enable TLS")
@@ -21,40 +21,33 @@ func parseArgs() internal.Options {
 	flag.BoolVar(&opts.NoList, "no-list", false, "disable directory listing")
 	flag.StringVar(&opts.BasePath, "base-path", "", "base web path for the application")
 	flag.StringVar(&opts.IndexFile, "index-file", "", "if a directory is requested, serve the index file by default otherwise directory listing")
-	flag.BoolVar(&opts.NoModify, "no-modify", false, "disable modification feature")
+	flag.BoolVar(&opts.ViewOnly, "view-only", false, "disable modification feature")
 	flag.BoolVar(&opts.CreateWritable, "create-writable", false, "create writable directories and files for other users")
+	flag.Int64Var(&opts.UploadLimitMiB, "upload-limit", 4096, "maximum upload size in MiB")
 
 	// Define short flags
-	flag.BoolVar(&opts.NoList, "L", false, "disable directory listing (shorthand)")
-	flag.BoolVar(&opts.NoModify, "M", false, "disable modification feature (shorthand)")
-	flag.BoolVar(&opts.CreateWritable, "W", false, "create writable directories and files for other users (shorthand)")
-	flag.StringVar(&opts.BasePath, "P", "", "base web path for the application (shorthand)")
-	flag.StringVar(&opts.IndexFile, "I", "", "if a directory is requested, serve the index file (shorthand)")
-
-	// Custom usage
-	flag.Usage = func() {
-		fmt.Fprintf(os.Stderr, "usage: webdir [-h] [-host HOST] [-port PORT] [-https]\n")
-		fmt.Fprintf(os.Stderr, "              [-basic-auth <USER:PASS>]\n")
-		fmt.Fprintf(os.Stderr, "              [-no-list/-L] [-no-modify/-M]\n")
-		fmt.Fprintf(os.Stderr, "              [-create-writable/-W] [-base-path/-P BASE_PATH]\n")
-		fmt.Fprintf(os.Stderr, "              [-index-file/-I INDEX_FILE]\n")
-		fmt.Fprintf(os.Stderr, "              [DOCUMENT_ROOT]\n\n")
-		flag.PrintDefaults()
-	}
+	flag.BoolVar(&opts.NoList, "L", false, "shorthand for -no-list")
+	flag.BoolVar(&opts.ViewOnly, "V", false, "shorthand for -view-only")
+	flag.BoolVar(&opts.CreateWritable, "W", false, "shorthand for -create-writable")
+	flag.StringVar(&opts.BasePath, "B", "", "shorthand for -base-path")
+	flag.StringVar(&opts.IndexFile, "I", "", "shorthand for -index-file")
+	flag.StringVar(&opts.BasicAuth, "A", "", "shorthand for -basic-auth")
+	flag.BoolVar(&opts.HTTPS, "T", false, "shorthand for -https")
+	flag.IntVar(&opts.Port, "P", 9999, "shorthand for -port")
+	flag.StringVar(&opts.Host, "H", "0.0.0.0", "shorthand for -host")
+	flag.StringVar(&opts.DocumentRoot, "R", ".", "shorthand for -root")
 
 	flag.Parse()
 
 	args := flag.Args()
 	if len(args) > 0 {
-		opts.DocumentRoot = args[0]
-	} else {
-		opts.DocumentRoot = "."
+		panic("this command does not accept arguments")
 	}
 
 	// Resolve absolute path for document root
 	absPath, err := filepath.Abs(opts.DocumentRoot)
 	if err != nil {
-		log.Fatalf("Error resolving document root path: %v", err)
+		panic("cannot resolve document root path")
 	}
 	opts.DocumentRoot = absPath
 
@@ -67,6 +60,10 @@ func parseArgs() internal.Options {
 	}
 
 	return opts
+}
+
+func init() {
+	slog.SetDefault(slog.New(slog.NewTextHandler(os.Stdout, nil)))
 }
 
 func main() {

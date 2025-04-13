@@ -23,10 +23,9 @@
       --dialog-bg: #ffffff;
       --success-color: #2ecc71;
       --danger-color: #e74c3c;
-      --danger-hover-color: #c0392b;
       --warning-color: #f39c12;
       --info-color: #3498db;
-      --folder-color: #f1c40f;
+      --directory-color: #f1c40f;
       --file-color: #95a5a6;
       --editor-bg: #ffffff;
       --editor-text: #333333;
@@ -65,7 +64,6 @@
       --dialog-bg: #2c2c2c;
       --success-color: #2ecc71;
       --danger-color: #ff5349;
-      --danger-hover-color: #e74c3c;
       --warning-color: #ffb347;
       --info-color: #4ea6e0;
       --folder-color: #f5d76e;
@@ -79,7 +77,7 @@
       --toast-bg: #2c2c2c;
       --tooltip-bg: #4c4c4c;
       --tooltip-color: #e0e0e0;
-      --checkbox-invert: 0.15;
+      --checkbox-invert: 0.8;
       --parent-dir-bg: #333;
       --parent-dir-color: #e0e0e0;
       --parent-dir-border: #444;
@@ -109,6 +107,7 @@
       max-width: 1200px;
       margin: 0 auto;
       padding: 20px;
+      min-width: 536px;
     }
 
     header {
@@ -125,13 +124,23 @@
       font-size: 24px;
     }
 
-    /* Breadcrumb styles */
-    .breadcrumb {
-      padding: 8px 15px;
+    .control-container {
+      display: flex;
+      flex-direction: column;
+      padding: 0px 15px;
       margin-bottom: 20px;
-      background-color: white;
+      background-color: var(--control-panel-bg);
       border-radius: 4px;
       border: 1px solid var(--border-color);
+    }
+
+    /* Breadcrumb styles */
+    .breadcrumb {
+      padding: 8px 0px;
+      border-bottom: 1px solid var(--border-color);
+      /* background-color: white;
+        border-radius: 4px;
+        border: 1px solid var(--border-color); */
     }
 
     .breadcrumb ol {
@@ -165,12 +174,11 @@
     .control-bar {
       display: flex;
       flex-wrap: wrap;
-      gap: 10px;
-      padding: 10px 15px;
-      margin-bottom: 20px;
-      background-color: var(--control-panel-bg);
-      border-radius: 4px;
-      border: 1px solid var(--border-color);
+      gap: 6px;
+      padding: 10px 0px;
+      /* background-color: var(--control-panel-bg);
+        border-radius: 4px;
+        border: 1px solid var(--border-color); */
       align-items: center;
       box-shadow: 0 2px 4px rgba(0, 0, 0, 0.05);
     }
@@ -178,7 +186,7 @@
     .btn {
       display: inline-flex;
       align-items: center;
-      padding: 6px 12px;
+      padding: 6px 6px;
       background-color: var(--primary-color);
       color: white;
       border: none;
@@ -206,6 +214,8 @@
     .btn.btn-parent {
       background-color: var(--parent-dir-bg);
       color: var(--parent-dir-color);
+      padding-left: 4px;
+      padding-right: 4px;
     }
 
     .btn.btn-parent:hover {
@@ -245,14 +255,22 @@
       font-weight: bold;
     }
 
+    .file-table-container {
+      overflow-x: auto;
+    }
+
     /* Table styles */
     .file-table {
       width: 100%;
       border-collapse: collapse;
+      border-color: var(--border-color);
       background-color: white;
       border-radius: 4px;
       overflow: hidden;
       box-shadow: 0 1px 3px rgba(0, 0, 0, 0.1);
+      table-layout: fixed;
+      white-space: nowrap;
+      min-width: 700px;
     }
 
     .file-table th,
@@ -260,14 +278,60 @@
       padding: 10px 15px;
       text-align: left;
       border-bottom: 1px solid var(--border-color);
+      overflow: hidden;
+      vertical-align: middle;
     }
 
     .file-table th {
       background-color: #f5f5f5;
       font-weight: 600;
+      -webkit-user-select: none;
       user-select: none;
       cursor: pointer;
       position: relative;
+    }
+
+    /* Style for checkbox cells to center contents */
+    .file-table th:first-child,
+    /* Apply to header too */
+    .file-table td:first-child {
+      /* Width for the checkbox column */
+      width: 45px;
+      /* Adjust as needed */
+      vertical-align: middle;
+      text-align: center;
+    }
+
+    /* --- Name Column Adjustments --- */
+
+    .file-table th[data-sort="name"] {
+      width: 50%;
+    }
+
+    .file-table th[data-sort="size"] {
+      width: 90px;
+    }
+
+    .file-table th[data-sort="permission"] {
+      width: 120px;
+    }
+
+    .file-table th[data-sort="modTime"] {
+      width: 190px;
+    }
+
+    [data-theme="dark"] .file-table {
+      background-color: var(--table-row-bg);
+      /* Ensure consistency */
+      border-color: var(--border-color);
+    }
+
+    [data-theme="dark"] .file-table tr:nth-child(even) td {
+      background-color: var(--row-hover-bg);
+    }
+
+    [data-theme="dark"] .file-table tr:hover td {
+      background-color: var(--row-hover-bg);
     }
 
     .file-table th:hover {
@@ -302,6 +366,8 @@
       display: flex;
       align-items: center;
       color: var(--text-color);
+      overflow: hidden;
+      width: 100%;
     }
 
     /* Ensure SVG icons are properly aligned */
@@ -314,10 +380,28 @@
       color: var(--text-color);
       text-decoration: none;
       margin-left: 6px;
+
+      flex-grow: 1;
+      /* Allow the link to take up available space */
+      min-width: 0;
+      /* Crucial: Allows the link to shrink below content size */
+      white-space: nowrap;
+      /* Prevent text wrapping */
+      overflow: hidden;
+      /* Hide overflowing text */
+      text-overflow: ellipsis;
+      /* Show ellipsis (...) */
+      display: block;
+      /* Or inline-block. Needed for overflow/text-overflow */
     }
 
     .file-table .filename a:hover {
       color: var(--primary-color);
+      text-decoration: underline;
+    }
+
+    /* Style for filename when checkbox is focused */
+    .file-table tr:has(input[type="checkbox"]:focus) .filename a {
       text-decoration: underline;
     }
 
@@ -557,10 +641,6 @@
       background-color: var(--dialog-bg);
     }
 
-    .file-table {
-      border-color: var(--border-color);
-    }
-
     .file-table th {
       background-color: var(--table-header-bg);
       border-color: var(--border-color);
@@ -610,11 +690,16 @@
 
     /* Drag and drop styles */
     .drag-drop-zone {
-      position: relative;
+      position: fixed;
+      top: 0;
+      left: 0;
+      width: 100vw;
+      height: 100vh;
+      z-index: -1;
     }
 
     .drag-drop-overlay {
-      position: absolute;
+      position: fixed;
       top: 0;
       left: 0;
       right: 0;
@@ -652,11 +737,6 @@
       border-radius: 4px;
       padding: 10px;
       margin-bottom: 15px;
-    }
-
-    .breadcrumb {
-      background-color: var(--toolbar-bg);
-      border-color: var(--border-color);
     }
 
     .dialog-input,
@@ -732,7 +812,7 @@
     .theme-switch {
       position: relative;
       display: inline-block;
-      width: 60px;
+      width: 40px;
       height: 24px;
       margin-left: 10px;
     }
@@ -751,7 +831,7 @@
       right: 0;
       bottom: 0;
       background-color: #ccc;
-      transition: .4s;
+      transition: 0.4s;
       border-radius: 34px;
     }
 
@@ -763,196 +843,219 @@
       left: 4px;
       bottom: 4px;
       background-color: white;
-      transition: .4s;
+      transition: 0.4s;
       border-radius: 50%;
     }
 
     input:checked+.slider {
-      background-color: var(--primary-color);
+      background-color: #444;
     }
 
     input:checked+.slider:before {
-      transform: translateX(36px);
+      transform: translateX(16px);
+      background-color: var(--bg-color);
     }
 
-    .theme-icon {
-      display: inline-flex;
-      vertical-align: middle;
-      margin-right: 5px;
+    body.view-only #btn-new-file,
+    body.view-only #btn-new-directory,
+    body.view-only #btn-upload,
+    body.view-only #btn-move,
+    body.view-only #btn-copy,
+    body.view-only #btn-delete,
+    body.view-only #btn-edit {
+      display: none;
     }
   </style>
 </head>
 
-<body class="drag-drop-zone">
+<body>
+  <div class="drag-drop-zone"></div>
+
   <div class="container">
     <header>
       <h1>WebDir</h1>
-      <div style="display: flex; align-items: center;">
-        <span class="theme-icon">🌓</span>
+      <div style="display: flex; align-items: center">
         <label class="theme-switch">
-          <input type="checkbox" id="theme-toggle">
+          <input type="checkbox" id="theme-toggle" />
           <span class="slider"></span>
         </label>
       </div>
     </header>
 
     <!-- Breadcrumb navigation -->
-    <nav class="breadcrumb">
-      <ol id="breadcrumb">
-        <li><a href="/">Home</a></li>
-        <!-- Dynamic breadcrumb items will be added here -->
-      </ol>
-      <button id="copy-path-btn" class="btn" style="margin-top: 10px;">
-        <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" width="16" height="16" fill="none"
-          stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
-          <path d="M8 17l4 4 4-4" />
-          <path d="M12 12v9" />
-          <path d="M20 8h-7a4 4 0 0 1-4-4V3" />
-        </svg>
-        Copy Path
-      </button>
-    </nav>
+    <div class="control-container">
+      <nav class="breadcrumb">
+        <ol id="breadcrumb">
+          <li><a href="/">Home</a></li>
+          <!-- Dynamic breadcrumb items will be added here -->
+        </ol>
+        <button id="copy-path-btn" class="btn" style="margin-top: 10px;">
+          <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" width="16" height="16" fill="none"
+            stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+            <path d="M8 17l4 4 4-4" />
+            <path d="M12 12v9" />
+            <path d="M20 8h-7a4 4 0 0 1-4-4V3" />
+          </svg>
+          Copy Path
+        </button>
+      </nav>
 
-    <!-- Control bar -->
-    <div class="control-bar">
-      <button id="btn-parent" class="btn btn-parent">
-        <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" width="24" height="24" fill="none"
-          stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
-          <path d="M15 18l-6-6 6-6" />
-        </svg>
-      </button>
+      <!-- Control bar -->
+      <div class="control-bar">
+        <button type="button" id="btn-parent" class="btn btn-parent" aria-label="Parent Directory">
+          <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" width="24" height="24" fill="none"
+            stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+            <path d="M15 18l-6-6 6-6" />
+          </svg>
+        </button>
 
-      <div class="filter-container">
-        <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" width="24" height="24" fill="none"
-          stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
-          <circle cx="11" cy="11" r="8" />
-          <line x1="21" y1="21" x2="16.65" y2="16.65" />
-        </svg>
-        <input type="text" id="filter-input" class="filter-input" placeholder="RegExp name filter..."
-          autocomplete="off" />
-      </div>
+        <div class="filter-container">
+          <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" width="24" height="24" fill="none"
+            stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+            <circle cx="11" cy="11" r="8" />
+            <line x1="21" y1="21" x2="16.65" y2="16.65" />
+          </svg>
+          <input type="text" id="filter-input" class="filter-input" placeholder="RegExp name filter..."
+            autocomplete="off" autofocus />
+        </div>
 
-      <button id="btn-new-folder" class="btn">
-        <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" width="24" height="24" fill="none"
-          stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
-          <path d="M22 19a2 2 0 0 1-2 2H4a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h5l2 3h9a2 2 0 0 1 2 2z" />
-          <line x1="12" y1="11" x2="12" y2="17" />
-          <line x1="9" y1="14" x2="15" y2="14" />
-        </svg>
-        New Folder
-      </button>
+        <button type="button" id="btn-new-file" class="btn">
+          <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" width="24" height="24" fill="none"
+            stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+            <path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z" />
+            <polyline points="14 2 14 8 20 8" />
+            <line x1="12" y1="18" x2="12" y2="12" />
+            <line x1="9" y1="15" x2="15" y2="15" />
+          </svg>
+          File
+        </button>
 
-      <button id="btn-new-document" class="btn">
-        <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" width="24" height="24" fill="none"
-          stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
-          <path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z" />
-          <polyline points="14 2 14 8 20 8" />
-          <line x1="12" y1="18" x2="12" y2="12" />
-          <line x1="9" y1="15" x2="15" y2="15" />
-        </svg>
-        New Document
-      </button>
+        <button type="button" id="btn-new-directory" class="btn">
+          <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" width="24" height="24" fill="none"
+            stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+            <path d="M22 19a2 2 0 0 1-2 2H4a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h5l2 3h9a2 2 0 0 1 2 2z" />
+            <line x1="12" y1="11" x2="12" y2="17" />
+            <line x1="9" y1="14" x2="15" y2="14" />
+          </svg>
+          Directory
+        </button>
 
-      <button id="btn-upload" class="btn">
-        <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" width="24" height="24" fill="none"
-          stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
-          <path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4" />
-          <polyline points="17 8 12 3 7 8" />
-          <line x1="12" y1="3" x2="12" y2="15" />
-        </svg>
-        Upload
-      </button>
+        <button type="button" id="btn-upload" class="btn">
+          <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" width="24" height="24" fill="none"
+            stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+            <path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4" />
+            <polyline points="17 8 12 3 7 8" />
+            <line x1="12" y1="3" x2="12" y2="15" />
+          </svg>
+          Upload
+        </button>
 
-      <button id="btn-move" class="btn" disabled>
-        <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" width="24" height="24" fill="none"
-          stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
-          <path d="M5 9l-3 3 3 3" />
-          <path d="M9 5l3-3 3 3" />
-          <path d="M19 9l3 3-3 3" />
-          <path d="M9 19l3 3 3-3" />
-          <path d="M21 12H3" />
-          <path d="M12 3v18" />
-        </svg>
-        Move
-      </button>
+        <button type="button" id="btn-move" class="btn" disabled>
+          <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" width="24" height="24" fill="none"
+            stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+            <path d="M5 9l-3 3 3 3" />
+            <path d="M9 5l3-3 3 3" />
+            <path d="M19 9l3 3-3 3" />
+            <path d="M9 19l3 3 3-3" />
+            <path d="M21 12H3" />
+            <path d="M12 3v18" />
+          </svg>
+          Move
+        </button>
 
-      <button id="btn-delete" class="btn" disabled>
-        <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" width="24" height="24" fill="none"
-          stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
-          <polyline points="3 6 5 6 21 6" />
-          <path d="M19 6v14a2 2 0 0 1-2 2H7a2 2 0 0 1-2-2V6m3 0V4a2 2 0 0 1 2-2h4a2 2 0 0 1 2 2v2" />
-          <line x1="10" y1="11" x2="10" y2="17" />
-          <line x1="14" y1="11" x2="14" y2="17" />
-        </svg>
-        Delete
-      </button>
+        <button type="button" id="btn-copy" class="btn" disabled>
+          <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" width="24" height="24" fill="none"
+            stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+            <rect x="9" y="9" width="13" height="13" rx="2" ry="2"></rect>
+            <path d="M5 15H4a2 2 0 0 1-2-2V4a2 2 0 0 1 2-2h9a2 2 0 0 1 2 2v1"></path>
+          </svg>
+          Copy
+        </button>
 
-      <button id="btn-edit" class="btn" disabled>
-        <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" width="24" height="24" fill="none"
-          stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
-          <path d="M11 4H4a2 2 0 0 0-2 2v14a2 2 0 0 0 2 2h14a2 2 0 0 0 2-2v-7" />
-          <path d="M18.5 2.5a2.121 2.121 0 0 1 3 3L12 15l-4 1 1-4 9.5-9.5z" />
-        </svg>
-        Edit
-      </button>
+        <button type="button" id="btn-delete" class="btn" disabled>
+          <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" width="24" height="24" fill="none"
+            stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+            <polyline points="3 6 5 6 21 6" />
+            <path d="M19 6v14a2 2 0 0 1-2 2H7a2 2 0 0 1-2-2V6m3 0V4a2 2 0 0 1 2-2h4a2 2 0 0 1 2 2v2" />
+            <line x1="10" y1="11" x2="10" y2="17" />
+            <line x1="14" y1="11" x2="14" y2="17" />
+          </svg>
+          Delete
+        </button>
 
-      <div class="selection-badge">
-        <span id="selection-count">0</span>/<span id="total-count">0</span>
-        selected
+        <button type="button" id="btn-edit" class="btn" disabled>
+          <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" width="24" height="24" fill="none"
+            stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+            <path d="M11 4H4a2 2 0 0 0-2 2v14a2 2 0 0 0 2 2h14a2 2 0 0 0 2-2v-7" />
+            <path d="M18.5 2.5a2.121 2.121 0 0 1 3 3L12 15l-4 1 1-4 9.5-9.5z" />
+          </svg>
+          Edit
+        </button>
+
+        <div class="selection-badge">
+          <span id="selection-count">0</span>/<span id="total-count">0</span>
+          selected
+        </div>
       </div>
     </div>
 
     <!-- File table -->
-    <table class="file-table">
-      <thead>
-        <tr>
-          <th width="30">
-            <input type="checkbox" id="select-all" class="checkbox" />
-          </th>
-          <th data-sort="name">Name</th>
-          <th data-sort="size" width="100">Size</th>
-          <th data-sort="permission" width="150">Permissions</th>
-          <th data-sort="modTime" width="200">Modified</th>
-        </tr>
-      </thead>
-      <tbody id="file-list">
-        <!-- File list will be dynamically generated here -->
-      </tbody>
-    </table>
+    <div class="file-table-container">
+      <table class="file-table">
+        <thead>
+          <tr>
+            <th width="30">
+              <input type="checkbox" id="select-all" class="checkbox" />
+            </th>
+            <th data-sort="name">Name</th>
+            <th data-sort="size">Size</th>
+            <th data-sort="permission">Permissions</th>
+            <th data-sort="modTime">Modified</th>
+          </tr>
+        </thead>
+        <tbody id="file-list">
+          <!-- File list will be dynamically generated here -->
+        </tbody>
+      </table>
+    </div>
   </div>
 
-  <!-- New Document Dialog -->
-  <div id="new-document-dialog" class="dialog-overlay">
+  <!-- New File Dialog -->
+  <div id="new-file-dialog" class="dialog-overlay">
     <div class="dialog">
       <div class="dialog-header">
-        <h3 class="dialog-title">Create New Document</h3>
-        <button class="dialog-close">&times;</button>
+        <h3 class="dialog-title">Create New File</h3>
+        <button type="button" class="dialog-close">&times;</button>
       </div>
       <div class="dialog-body">
-        <input type="text" id="new-document-name" class="dialog-input" placeholder="Enter document name"
-          autocomplete="off" />
+        <input type="text" id="new-file-name" class="dialog-input" placeholder="Enter file name" autocomplete="off" />
       </div>
       <div class="dialog-footer">
-        <button class="btn btn-cancel">Cancel</button>
-        <button class="btn btn-confirm btn-primary">Create</button>
+        <button type="button" class="btn btn-cancel">Cancel</button>
+        <button type="button" class="btn btn-confirm btn-primary">
+          Create
+        </button>
       </div>
     </div>
   </div>
 
-  <!-- New Folder Dialog -->
-  <div id="new-folder-dialog" class="dialog-overlay">
+  <!-- New Directory Dialog -->
+  <div id="new-directory-dialog" class="dialog-overlay">
     <div class="dialog">
       <div class="dialog-header">
-        <h3 class="dialog-title">Create New Folder</h3>
-        <button class="dialog-close">&times;</button>
+        <h3 class="dialog-title">Create New Directory</h3>
+        <button type="button" class="dialog-close">&times;</button>
       </div>
       <div class="dialog-body">
-        <input type="text" id="new-folder-name" class="dialog-input" placeholder="Folder name" autocomplete="off" />
-        <p>Folder name can include '/' for multiple levels (mkdir -p)</p>
+        <input type="text" id="new-directory-name" class="dialog-input" placeholder="Directory name"
+          autocomplete="off" />
+        <p>Directory name can include '/' for multiple levels (mkdir -p)</p>
       </div>
       <div class="dialog-footer">
-        <button class="btn btn-cancel">Cancel</button>
-        <button class="btn btn-confirm">Create</button>
+        <button type="button" class="btn btn-cancel">Cancel</button>
+        <button type="button" class="btn btn-confirm btn-primary">
+          Create
+        </button>
       </div>
     </div>
   </div>
@@ -962,14 +1065,35 @@
     <div class="dialog">
       <div class="dialog-header">
         <h3 class="dialog-title">Move</h3>
-        <button class="dialog-close">&times;</button>
+        <button type="button" class="dialog-close">&times;</button>
       </div>
       <div class="dialog-body">
         <input type="text" id="move-target" class="dialog-input" placeholder="Target path" autocomplete="off" />
       </div>
       <div class="dialog-footer">
-        <button class="btn btn-cancel">Cancel</button>
-        <button class="btn btn-confirm">Move</button>
+        <button type="button" class="btn btn-cancel">Cancel</button>
+        <button type="button" class="btn btn-confirm btn-primary">
+          Move
+        </button>
+      </div>
+    </div>
+  </div>
+
+  <!-- Copy Dialog -->
+  <div id="copy-dialog" class="dialog-overlay">
+    <div class="dialog">
+      <div class="dialog-header">
+        <h3 class="dialog-title">Copy</h3>
+        <button type="button" class="dialog-close">&times;</button>
+      </div>
+      <div class="dialog-body">
+        <input type="text" id="copy-target" class="dialog-input" placeholder="Target path" autocomplete="off" />
+      </div>
+      <div class="dialog-footer">
+        <button type="button" class="btn btn-cancel">Cancel</button>
+        <button type="button" class="btn btn-confirm btn-primary">
+          Copy
+        </button>
       </div>
     </div>
   </div>
@@ -979,21 +1103,26 @@
     <div class="dialog" style="max-width: 800px; width: 80%">
       <div class="dialog-header">
         <h3 class="dialog-title">Edit File</h3>
-        <button class="dialog-close">&times;</button>
+        <button type="button" class="dialog-close">&times;</button>
       </div>
       <div class="dialog-body">
         <!-- Indentation Settings -->
-        <div class="editor-settings" style="display: flex; align-items: center; margin-bottom: 8px; gap: 10px;">
-          <label style="display: flex; align-items: center; gap: 5px;">
+        <div class="editor-settings" style="
+              display: flex;
+              align-items: center;
+              margin-bottom: 8px;
+              gap: 10px;
+            ">
+          <label style="display: flex; align-items: center; gap: 5px">
             <span>Indentation:</span>
-            <select id="editor-indent-type" style="padding: 4px;">
+            <select aria-label="Indentation" id="editor-indent-type" style="padding: 4px">
               <option value="tab">Tabs</option>
               <option value="space">Spaces</option>
             </select>
           </label>
-          <div id="editor-spaces-container" style="display: none; align-items: center; gap: 5px;">
+          <div id="editor-spaces-container" style="display: none; align-items: center; gap: 5px">
             <label for="editor-spaces-count">Spaces:</label>
-            <input type="number" id="editor-spaces-count" min="2" max="8" value="4" style="width: 50px; padding: 4px;">
+            <input type="number" id="editor-spaces-count" min="2" max="8" value="4" style="width: 50px; padding: 4px" />
           </div>
         </div>
         <div class="editor-container">
@@ -1001,8 +1130,10 @@
         </div>
       </div>
       <div class="dialog-footer">
-        <button class="btn btn-cancel">Cancel</button>
-        <button class="btn btn-confirm">Save</button>
+        <button type="button" class="btn btn-cancel">Cancel</button>
+        <button type="button" class="btn btn-confirm btn-primary">
+          Save
+        </button>
       </div>
     </div>
   </div>
@@ -1012,15 +1143,17 @@
     <div class="dialog">
       <div class="dialog-header">
         <h3 class="dialog-title">Confirm Delete</h3>
-        <button class="dialog-close">&times;</button>
+        <button type="button" class="dialog-close">&times;</button>
       </div>
       <div class="dialog-body">
         <p>Are you sure you want to delete the selected item(s)?</p>
         <p id="delete-count"></p>
       </div>
       <div class="dialog-footer">
-        <button class="btn btn-cancel">Cancel</button>
-        <button class="btn btn-delete-confirm">Delete</button>
+        <button type="button" class="btn btn-cancel">Cancel</button>
+        <button type="button" class="btn btn-confirm btn-primary">
+          Delete
+        </button>
       </div>
     </div>
   </div>
@@ -1042,7 +1175,7 @@
   <div class="drag-drop-overlay" id="drag-drop-overlay">
     <div class="drag-drop-message">
       <h3>Drop files to upload</h3>
-      <p>Files will be uploaded to the current folder</p>
+      <p>Files will be uploaded to the current directory</p>
     </div>
   </div>
 
@@ -1050,30 +1183,31 @@
     // Theme switching functionality
     function setTheme(isDark) {
       if (isDark) {
-        document.documentElement.setAttribute('data-theme', 'dark');
-        localStorage.setItem('webdir-theme', 'dark');
+        document.documentElement.setAttribute("data-theme", "dark");
+        localStorage.setItem("webdir-theme", "dark");
       } else {
-        document.documentElement.removeAttribute('data-theme');
-        localStorage.setItem('webdir-theme', 'light');
+        document.documentElement.removeAttribute("data-theme");
+        localStorage.setItem("webdir-theme", "light");
       }
     }
 
     // Initialize theme from localStorage, defaulting to dark mode
-    const savedTheme = localStorage.getItem('webdir-theme');
+    const savedTheme = localStorage.getItem("webdir-theme");
     // Always default to dark mode if no preference is saved
-    const defaultDark = savedTheme !== 'light';
+    const defaultDark = savedTheme !== "light";
 
     // Set initial theme state before page loads
     setTheme(defaultDark);
 
     document.addEventListener("DOMContentLoaded", () => {
       // Set initial toggle state
-      const themeToggle = document.getElementById('theme-toggle');
+      const themeToggle = document.getElementById("theme-toggle");
       themeToggle.checked = defaultDark;
 
       // Add theme toggle event listener
-      themeToggle.addEventListener('change', (e) => {
+      themeToggle.addEventListener("change", (e) => {
         setTheme(e.target.checked);
+        document.activeElement.blur();
       });
 
       // Global state
@@ -1088,7 +1222,7 @@
 
       // SVG Icons
       const icons = {
-        folder:
+        directory:
           '<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" width="24" height="24" fill="#f1c40f" stroke="currentColor" stroke-width="1" stroke-linecap="round" stroke-linejoin="round"><path d="M22 19a2 2 0 0 1-2 2H4a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h5l2 3h9a2 2 0 0 1 2 2z"></path></svg>',
         file: '<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" width="24" height="24" fill="#95a5a6" stroke="currentColor" stroke-width="1" stroke-linecap="round" stroke-linejoin="round"><path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"></path><polyline points="14 2 14 8 20 8"></polyline></svg>',
         unknown:
@@ -1104,10 +1238,11 @@
         selectionCount: document.getElementById("selection-count"),
         totalCount: document.getElementById("total-count"),
         btnParent: document.getElementById("btn-parent"),
-        btnNewFolder: document.getElementById("btn-new-folder"),
-        btnNewDocument: document.getElementById("btn-new-document"),
+        btnNewFile: document.getElementById("btn-new-file"),
+        btnNewDirectory: document.getElementById("btn-new-directory"),
         btnUpload: document.getElementById("btn-upload"),
         btnMove: document.getElementById("btn-move"),
+        btnCopy: document.getElementById("btn-copy"),
         btnDelete: document.getElementById("btn-delete"),
         btnEdit: document.getElementById("btn-edit"),
         uploadInput: document.getElementById("upload-input"),
@@ -1115,15 +1250,17 @@
         dragDropOverlay: document.getElementById("drag-drop-overlay"),
 
         // Dialogs
-        newFolderDialog: document.getElementById("new-folder-dialog"),
-        newDocumentDialog: document.getElementById("new-document-dialog"),
+        newDirectoryDialog: document.getElementById("new-directory-dialog"),
+        newFileDialog: document.getElementById("new-file-dialog"),
         moveDialog: document.getElementById("move-dialog"),
+        copyDialog: document.getElementById("copy-dialog"),
         editorDialog: document.getElementById("editor-dialog"),
         deleteDialog: document.getElementById("delete-dialog"),
 
         // Dialog inputs
-        newFolderName: document.getElementById("new-folder-name"),
+        newDirectoryName: document.getElementById("new-directory-name"),
         moveTarget: document.getElementById("move-target"),
+        copyTarget: document.getElementById("copy-target"),
         editorTextarea: document.getElementById("editor-textarea"),
         deleteCount: document.getElementById("delete-count"),
 
@@ -1156,6 +1293,37 @@
           }
         },
 
+        // Create file
+        async createFile(path) {
+          try {
+            const response = await fetch("/?api=edit", {
+              method: "POST",
+              headers: {
+                "Content-Type": "application/json",
+              },
+              body: JSON.stringify({
+                path,
+                content: "",
+              }),
+            });
+
+            if (!response.ok) {
+              throw new Error(`HTTP error ${response.status}`);
+            }
+
+            const data = await response.json();
+            if (!data.success) {
+              throw new Error(data.message || "Unknown error");
+            }
+
+            showToast("success", "File created successfully");
+            return data;
+          } catch (error) {
+            showToast("error", `Failed to create file: ${error.message}`);
+            throw error;
+          }
+        },
+
         // Create directory
         async createDirectory(path) {
           try {
@@ -1176,10 +1344,13 @@
               throw new Error(data.message || "Unknown error");
             }
 
-            showToast("success", "Folder created successfully");
+            showToast("success", "Directory created successfully");
             return data;
           } catch (error) {
-            showToast("error", `Failed to create folder: ${error.message}`);
+            showToast(
+              "error",
+              `Failed to create directory: ${error.message}`
+            );
             throw error;
           }
         },
@@ -1202,7 +1373,10 @@
 
             // Create promise to handle async upload
             const uploadPromise = new Promise((resolve, reject) => {
-              xhr.open("POST", `/?api=upload&path=${encodeURIComponent(path)}`);
+              xhr.open(
+                "POST",
+                `/?api=upload&path=${encodeURIComponent(path)}`
+              );
 
               xhr.upload.addEventListener("progress", (event) => {
                 if (event.lengthComputable) {
@@ -1214,19 +1388,15 @@
               });
 
               xhr.onload = function () {
-                if (xhr.status >= 200 && xhr.status < 300) {
-                  try {
-                    const data = JSON.parse(xhr.responseText);
-                    if (!data.success) {
-                      reject(new Error(data.message || "Upload failed"));
-                    } else {
-                      resolve(data);
-                    }
-                  } catch (e) {
-                    reject(new Error("Invalid response from server"));
+                try {
+                  const data = JSON.parse(xhr.responseText);
+                  if (!data.success) {
+                    reject(new Error(data.message || "Upload failed"));
+                  } else {
+                    resolve(data);
                   }
-                } else {
-                  reject(new Error(`HTTP error ${xhr.status}`));
+                } catch (e) {
+                  reject(new Error("Invalid response from server"));
                 }
               };
 
@@ -1272,7 +1442,7 @@
           }
         },
 
-        // Move files/folders
+        // Move files/directories
         async moveItems(paths, target) {
           try {
             const response = await fetch("/?api=move", {
@@ -1306,7 +1476,41 @@
           }
         },
 
-        // Delete files/folders
+        // Copy files/directories
+        async copyItems(paths, target) {
+          try {
+            const response = await fetch("/?api=copy", {
+              method: "POST",
+              headers: {
+                "Content-Type": "application/json",
+              },
+              body: JSON.stringify({
+                paths,
+                target,
+              }),
+            });
+
+            if (!response.ok) {
+              throw new Error(`HTTP error ${response.status}`);
+            }
+
+            const data = await response.json();
+            if (!data.success) {
+              throw new Error(data.message || "Unknown error");
+            }
+
+            showToast(
+              "success",
+              `Successfully copied ${data.data.copied} item(s)`
+            );
+            return data;
+          } catch (error) {
+            showToast("error", `Failed to copy items: ${error.message}`);
+            throw error;
+          }
+        },
+
+        // Delete files/directories
         async deleteItems(paths) {
           try {
             const response = await fetch("/?api=delete", {
@@ -1402,11 +1606,11 @@
 
         // Format as YYYY-MM-DD HH:MM:SS
         const year = date.getFullYear();
-        const month = String(date.getMonth() + 1).padStart(2, '0');
-        const day = String(date.getDate()).padStart(2, '0');
-        const hours = String(date.getHours()).padStart(2, '0');
-        const minutes = String(date.getMinutes()).padStart(2, '0');
-        const seconds = String(date.getSeconds()).padStart(2, '0');
+        const month = String(date.getMonth() + 1).padStart(2, "0");
+        const day = String(date.getDate()).padStart(2, "0");
+        const hours = String(date.getHours()).padStart(2, "0");
+        const minutes = String(date.getMinutes()).padStart(2, "0");
+        const seconds = String(date.getSeconds()).padStart(2, "0");
 
         return `${year}-${month}-${day} ${hours}:${minutes}:${seconds}`;
       }
@@ -1512,9 +1716,21 @@
         // Close on Escape key
         const handleKeyDown = (e) => {
           if (e.key === "Escape") {
+            e.preventDefault();
             closeDialog();
-          } else if (e.key === "Enter" && e.target.tagName !== "TEXTAREA" && dialog !== elements.editorDialog) {
-            // Only handle Enter for non-editor dialogs
+            return;
+          }
+
+          if (
+            e.target.tagName === "TEXTAREA" ||
+            dialog === elements.editorDialog
+          ) {
+            return;
+          }
+
+          // Only handle Enter for non-editor dialogs
+          if (e.key === "Enter") {
+            e.preventDefault();
             handleConfirm();
           }
         };
@@ -1541,6 +1757,9 @@
 
         // Update button states
         updateButtonStates();
+
+        // Update select all checkbox state
+        updateSelectAllCheckbox();
       }
 
       // Update breadcrumb navigation
@@ -1595,12 +1814,31 @@
         sortedEntries.forEach((entry) => {
           const row = document.createElement("tr");
 
+          // Add click event to row to focus on checkbox (except when clicking on name)
+          row.addEventListener("click", (e) => {
+            // Check if click was on the name link
+            const nameLink = row.querySelector(".filename a");
+            const checkbox = row.querySelector('input[type="checkbox"]');
+
+            // Don't focus on checkbox if clicking on name link
+            if (e.target === nameLink || e.target === checkbox) {
+              return;
+            }
+
+            // Find the checkbox and focus on it
+            if (checkbox) {
+              e.preventDefault();
+              checkbox.focus();
+            }
+          });
+
           // Checkbox cell
           const checkboxCell = document.createElement("td");
           const checkbox = document.createElement("input");
           checkbox.type = "checkbox";
           checkbox.className = "checkbox";
           checkbox.checked = state.selected.has(entry.path);
+          checkbox.name = "entry";
           checkbox.addEventListener("change", () => {
             if (checkbox.checked) {
               state.selected.add(entry.path);
@@ -1609,6 +1847,30 @@
             }
             updateSelectionCount();
             updateButtonStates();
+          });
+
+          // Add keydown event to checkbox to trigger entry link click when Enter is pressed
+          // or when right arrow is pressed on a directory
+          checkbox.addEventListener("keydown", (e) => {
+            // Skip if any dialog is active
+            const activeDialog = document.querySelector(
+              ".dialog-overlay.active"
+            );
+            if (activeDialog) {
+              return;
+            }
+
+            if (
+              e.key === "Enter" ||
+              (e.key === "ArrowRight" && entry.isDir)
+            ) {
+              e.preventDefault();
+              // Find and click the entry link
+              const nameLink = row.querySelector(".filename a");
+              if (nameLink) {
+                nameLink.click();
+              }
+            }
           });
           checkboxCell.appendChild(checkbox);
           row.appendChild(checkboxCell);
@@ -1620,23 +1882,37 @@
 
           // Icon based on type
           const iconSpan = document.createElement("span");
-          iconSpan.innerHTML = entry.isDir ? icons.folder : icons.file;
+          iconSpan.innerHTML = entry.isDir ? icons.directory : icons.file;
           nameContainer.appendChild(iconSpan);
 
           // Name with link
           const nameLink = document.createElement("a");
           nameLink.textContent = entry.name;
+          nameLink.title = entry.name;
           nameLink.href = entry.path;
           nameLink.addEventListener("click", (e) => {
-            e.preventDefault();
             if (entry.isDir) {
-              navigateTo(entry.path);
+              if (!e.metaKey && !e.ctrlKey) {
+                e.preventDefault();
+                navigateTo(entry.path);
+              }
             } else {
-              const maxWidth = Math.min(800, window.innerWidth * 0.9);
-              const maxHeight = Math.min(600, window.innerHeight * 0.9);
-              const left = (window.screen.width - maxWidth) / 2;
-              const top = (window.screen.height - maxHeight) / 2;
-              window.open(entry.path, "webdirPreview", `width=${maxWidth},height=${maxHeight},top=${top},left=${left},resizable=yes,scrollbars=yes`);
+              if (e.shiftKey) {
+                // Open in preview window
+                e.preventDefault();
+                const maxWidth = Math.min(800, window.innerWidth * 0.9);
+                const maxHeight = Math.min(500, window.innerHeight * 0.9);
+                const left = (window.screen.width - maxWidth) / 2;
+                const top = (window.screen.height - maxHeight) / 2;
+                window.open(
+                  entry.path,
+                  "webdirPreview",
+                  `width=${maxWidth},height=${maxHeight},top=${top},left=${left},resizable=yes,scrollbars=yes`
+                );
+              } else {
+                e.preventDefault();
+                window.open(entry.path, "_blank");
+              }
             }
           });
           nameContainer.appendChild(nameLink);
@@ -1684,12 +1960,28 @@
       function updateSelectionCount() {
         elements.selectionCount.textContent = state.selected.size;
         elements.totalCount.textContent = state.entries.length;
+      }
+
+      // Update select all checkbox state based on visible entries
+      function updateSelectAllCheckbox() {
+        const visibleEntries = elements.fileList.querySelectorAll("tr");
+        let checkedCount = 0;
+
+        visibleEntries.forEach((row) => {
+          const checkbox = row.querySelector('input[type="checkbox"]');
+          if (checkbox && checkbox.checked) {
+            checkedCount++;
+          }
+        });
 
         // Update select all checkbox
-        if (state.selected.size === 0) {
+        if (visibleEntries.length === 0) {
           elements.selectAll.checked = false;
           elements.selectAll.indeterminate = false;
-        } else if (state.selected.size === state.entries.length) {
+        } else if (checkedCount === 0) {
+          elements.selectAll.checked = false;
+          elements.selectAll.indeterminate = false;
+        } else if (checkedCount === visibleEntries.length) {
           elements.selectAll.checked = true;
           elements.selectAll.indeterminate = false;
         } else {
@@ -1708,12 +2000,13 @@
 
         // Enable/disable buttons based on selection
         elements.btnMove.disabled = !hasSelection;
+        elements.btnCopy.disabled = !hasSelection;
         elements.btnDelete.disabled = !hasSelection;
         elements.btnEdit.disabled = !(hasSingleSelection && hasSingleFile);
 
-        // New folder button should always be enabled
-        // Empty folders are valid locations for new folders
-        elements.btnNewFolder.disabled = false;
+        // New directory button should always be enabled
+        // Empty directories are valid locations for new directories
+        elements.btnNewDirectory.disabled = false;
 
         // Adjust upload button behavior based on selection
         if (hasSingleSelection) {
@@ -1798,6 +2091,9 @@
           // Fetch directory contents
           const contents = await api.listDirectory(path);
 
+          // Store previous path
+          const previousPath = state.currentPath + "/";
+
           // Update state
           state.currentPath = contents.path;
           state.entries = contents.entries;
@@ -1815,6 +2111,18 @@
 
           // Clear filter
           elements.filterInput.value = "";
+
+          // Disable parent button if we're at the root
+          elements.btnParent.disabled = path === "/";
+
+          // Focus on the checkbox of the entry that matches the previous path
+          document
+            .querySelector(
+              `.file-table a[href="${CSS.escape(previousPath)}"]`
+            )
+            ?.closest(".file-table tr")
+            ?.querySelector('input[type="checkbox"]')
+            ?.focus();
         } catch (error) {
           console.error("Navigation error:", error);
         }
@@ -1846,6 +2154,9 @@
 
           // Restore original entries
           state.entries = originalEntries;
+
+          // Update select all checkbox state based on filtered entries
+          updateSelectAllCheckbox();
         } catch (error) {
           // Invalid regex, just use as string
           console.error("Filter error:", error);
@@ -1868,14 +2179,15 @@
         navigateTo(parentPath || "/");
       });
 
-      // Handle new folder button click
-      elements.btnNewFolder.addEventListener("click", () => {
-        elements.newFolderName.value = "";
+      // Handle new file button click
+      elements.btnNewFile.addEventListener("click", () => {
+        const input = document.getElementById("new-file-name");
+        input.value = "";
 
-        showDialog(elements.newFolderDialog, () => {
-          const folderName = elements.newFolderName.value.trim();
-          if (!folderName) {
-            showToast("error", "Folder name cannot be empty");
+        showDialog(elements.newFileDialog, () => {
+          const fileName = input.value.trim();
+          if (!fileName) {
+            showToast("error", "File name cannot be empty");
             return false;
           }
 
@@ -1887,9 +2199,45 @@
             basePath = selectedEntries[0].path;
           }
 
-          // Create the folder
+          // Create the file
           const path =
-            basePath + (basePath.endsWith("/") ? "" : "/") + folderName;
+            basePath + (basePath.endsWith("/") ? "" : "/") + fileName;
+
+          api
+            .createFile(path)
+            .then(() => {
+              navigateTo(state.currentPath);
+            })
+            .catch((error) => {
+              console.error("Create file error:", error);
+            });
+
+          return true;
+        });
+      });
+
+      // Handle new directory button click
+      elements.btnNewDirectory.addEventListener("click", () => {
+        elements.newDirectoryName.value = "";
+
+        showDialog(elements.newDirectoryDialog, () => {
+          const directoryName = elements.newDirectoryName.value.trim();
+          if (!directoryName) {
+            showToast("error", "Directory name cannot be empty");
+            return false;
+          }
+
+          const selectedEntries = getSelectedEntries();
+          let basePath = state.currentPath;
+
+          // If a single directory is selected, create in that directory
+          if (selectedEntries.length === 1 && selectedEntries[0].isDir) {
+            basePath = selectedEntries[0].path;
+          }
+
+          // Create the directory
+          const path =
+            basePath + (basePath.endsWith("/") ? "" : "/") + directoryName;
 
           api
             .createDirectory(path)
@@ -1897,46 +2245,7 @@
               navigateTo(state.currentPath);
             })
             .catch((error) => {
-              console.error("Create folder error:", error);
-            });
-
-          return true;
-        });
-      });
-
-      // Handle new document button click
-      elements.btnNewDocument.addEventListener("click", () => {
-        const input = document.getElementById("new-document-name");
-        input.value = "";
-
-        showDialog(elements.newDocumentDialog, () => {
-          const fileName = input.value.trim();
-          if (!fileName) {
-            showToast("error", "Document name cannot be empty");
-            return false;
-          }
-
-          const selectedEntries = getSelectedEntries();
-          let basePath = state.currentPath;
-
-          // If a single directory is selected, create in that directory
-          if (selectedEntries.length === 1 && selectedEntries[0].isDir) {
-            basePath = selectedEntries[0].path;
-          }
-
-          // Create the document
-          const path =
-            basePath + (basePath.endsWith("/") ? "" : "/") + fileName;
-
-          api
-            .saveFileContent(path, "")
-            .then(() => {
-              navigateTo(state.currentPath);
-              showToast("success", "Document created successfully");
-            })
-            .catch((error) => {
-              console.error("Create document error:", error);
-              showToast("error", `Failed to create document: ${error.message}`);
+              console.error("Create directory error:", error);
             });
 
           return true;
@@ -2066,6 +2375,52 @@
         });
       });
 
+      // Handle copy button click
+      elements.btnCopy.addEventListener("click", () => {
+        const selectedEntries = getSelectedEntries();
+        if (selectedEntries.length === 0) {
+          return;
+        }
+
+        // Show copy dialog
+        const targetPath = state.currentPath + "/";
+        elements.copyDialog.querySelector(".dialog-title").textContent =
+          "Copy To";
+        elements.copyTarget.value = targetPath;
+
+        showDialog(elements.copyDialog, () => {
+          const target = elements.copyTarget.value.trim();
+          if (!target) {
+            showToast("error", "Target path cannot be empty");
+            return false;
+          }
+
+          const paths = selectedEntries.map((entry) => entry.path);
+
+          api
+            .copyItems(paths, target)
+            .then(() => {
+              // Refresh directory listing
+              navigateTo(state.currentPath);
+            })
+            .catch((error) => {
+              console.error("Copy error:", error);
+            });
+
+          return true;
+        });
+
+        // Reset dialog title after it's closed
+        elements.copyDialog.addEventListener(
+          "dialogclose",
+          () => {
+            elements.copyDialog.querySelector(".dialog-title").textContent =
+              "Copy To";
+          },
+          { once: true }
+        );
+      });
+
       // Handle delete button click
       elements.btnDelete.addEventListener("click", () => {
         const selectedEntries = getSelectedEntries();
@@ -2100,7 +2455,7 @@
       const elements2 = {
         indentType: document.getElementById("editor-indent-type"),
         spacesContainer: document.getElementById("editor-spaces-container"),
-        spacesCount: document.getElementById("editor-spaces-count")
+        spacesCount: document.getElementById("editor-spaces-count"),
       };
 
       // Toggle space count visibility based on indent type
@@ -2143,28 +2498,51 @@
             // Shift+Tab: Remove one level of indentation at the beginning of the line
             const lineStart = value.lastIndexOf("\n", start - 1) + 1;
             const lineEnd = value.indexOf("\n", start);
-            const currentLine = lineEnd >= 0 ? value.substring(lineStart, lineEnd) : value.substring(lineStart);
+            const currentLine =
+              lineEnd >= 0
+                ? value.substring(lineStart, lineEnd)
+                : value.substring(lineStart);
 
             if (currentLine.startsWith("\t")) {
               // Remove a tab character
-              e.target.value = value.substring(0, lineStart) + currentLine.substring(1) + (lineEnd >= 0 ? value.substring(lineEnd) : "");
-              e.target.selectionStart = e.target.selectionEnd = Math.max(lineStart, start - 1);
+              e.target.value =
+                value.substring(0, lineStart) +
+                currentLine.substring(1) +
+                (lineEnd >= 0 ? value.substring(lineEnd) : "");
+              e.target.selectionStart = e.target.selectionEnd = Math.max(
+                lineStart,
+                start - 1
+              );
             } else if (currentLine.startsWith(" ")) {
               // For spaces, try to remove the configured number of spaces
               let spacesToRemove = 0;
-              for (let i = 0; i < spacesCount && i < currentLine.length && currentLine[i] === " "; i++) {
+              for (
+                let i = 0;
+                i < spacesCount &&
+                i < currentLine.length &&
+                currentLine[i] === " ";
+                i++
+              ) {
                 spacesToRemove++;
               }
 
               if (spacesToRemove > 0) {
-                e.target.value = value.substring(0, lineStart) + currentLine.substring(spacesToRemove) + (lineEnd >= 0 ? value.substring(lineEnd) : "");
-                e.target.selectionStart = e.target.selectionEnd = Math.max(lineStart, start - spacesToRemove);
+                e.target.value =
+                  value.substring(0, lineStart) +
+                  currentLine.substring(spacesToRemove) +
+                  (lineEnd >= 0 ? value.substring(lineEnd) : "");
+                e.target.selectionStart = e.target.selectionEnd = Math.max(
+                  lineStart,
+                  start - spacesToRemove
+                );
               }
             }
           } else {
             // Tab: Insert indentation
-            e.target.value = value.substring(0, start) + indentChar + value.substring(end);
-            e.target.selectionStart = e.target.selectionEnd = start + indentSize;
+            e.target.value =
+              value.substring(0, start) + indentChar + value.substring(end);
+            e.target.selectionStart = e.target.selectionEnd =
+              start + indentSize;
           }
         }
 
@@ -2176,8 +2554,13 @@
 
           if (indentation) {
             e.preventDefault();
-            e.target.value = value.substring(0, start) + "\n" + indentation + value.substring(end);
-            e.target.selectionStart = e.target.selectionEnd = start + 1 + indentation.length;
+            e.target.value =
+              value.substring(0, start) +
+              "\n" +
+              indentation +
+              value.substring(end);
+            e.target.selectionStart = e.target.selectionEnd =
+              start + 1 + indentation.length;
           }
         }
       });
@@ -2220,22 +2603,78 @@
 
       // Handle select all checkbox
       elements.selectAll.addEventListener("change", () => {
+        // Get all visible rows
+        const visibleRows = Array.from(
+          elements.fileList.querySelectorAll("tr")
+        );
+
         if (elements.selectAll.checked) {
-          // Select all
-          state.entries.forEach((entry) => {
-            state.selected.add(entry.path);
+          // Select all visible entries (respecting filter)
+          visibleRows.forEach((row) => {
+            const checkbox = row.querySelector('input[type="checkbox"]');
+            if (checkbox) {
+              checkbox.checked = true;
+
+              // Find the corresponding entry in state.entries
+              const nameLink = row.querySelector("td:nth-child(2) a");
+              if (nameLink) {
+                const entryName = nameLink.textContent;
+                const entry = state.entries.find((e) => e.name === entryName);
+                if (entry) {
+                  state.selected.add(entry.path);
+                }
+              }
+            }
           });
         } else {
-          // Deselect all
-          state.selected.clear();
+          // Deselect all visible entries
+          visibleRows.forEach((row) => {
+            const checkbox = row.querySelector('input[type="checkbox"]');
+            if (checkbox) {
+              checkbox.checked = false;
+
+              // Find the corresponding entry in state.entries
+              const nameLink = row.querySelector("td:nth-child(2) a");
+              if (nameLink) {
+                const entryName = nameLink.textContent;
+                const entry = state.entries.find((e) => e.name === entryName);
+                if (entry) {
+                  state.selected.delete(entry.path);
+                }
+              }
+            }
+          });
         }
 
         updateUI();
+        applyFilter(elements.filterInput.value.trim());
+      });
+
+      // Add keyboard navigation for select all checkbox
+      elements.selectAll.addEventListener("keydown", (e) => {
+        if (e.key === "ArrowDown") {
+          e.preventDefault();
+          focusOnNextElement(elements.selectAll);
+        } else if (e.key === "ArrowUp") {
+          e.preventDefault();
+          focusOnPreviousElement(elements.selectAll);
+        }
       });
 
       // Handle filter input
       elements.filterInput.addEventListener("input", () => {
         applyFilter(elements.filterInput.value.trim());
+      });
+
+      // Add keyboard navigation for filter input
+      elements.filterInput.addEventListener("keydown", (e) => {
+        if (e.key === "ArrowDown") {
+          e.preventDefault();
+          focusOnNextElement(elements.filterInput);
+        } else if (e.key === "ArrowUp") {
+          e.preventDefault();
+          focusOnPreviousElement(elements.filterInput);
+        }
       });
 
       // Handle sort column click
@@ -2283,7 +2722,7 @@
       async function init() {
         try {
           // Get current path from URL
-          const path = window.location.pathname;
+          const path = decodeURI(window.location.pathname);
 
           // Navigate to current path
           await navigateTo(path);
@@ -2293,8 +2732,169 @@
         }
       }
 
+      // Set up keyboard shortcuts
+      setupKeyboardShortcuts();
+
+      // Set up keyboard navigation for filter and checkboxes
+      setupCheckboxNavigation();
+
       // Set up drag and drop functionality
       setupDragAndDrop();
+
+      // Function to set up keyboard shortcuts
+      function setupKeyboardShortcuts() {
+        document.addEventListener("keydown", (e) => {
+          // Skip if any dialog is active
+          const activeDialog = document.querySelector(
+            ".dialog-overlay.active"
+          );
+          if (activeDialog) {
+            return;
+          }
+
+          // Handle arrow keys when no element is focused (document.activeElement is body)
+          if (document.activeElement === document.body) {
+            if (e.key === "ArrowDown") {
+              e.preventDefault();
+              // Focus on first entry checkbox
+              const firstCheckbox = document.querySelector(
+                'tbody input[type="checkbox"]'
+              );
+              if (firstCheckbox) {
+                firstCheckbox.focus();
+                return;
+              }
+            } else if (e.key === "ArrowUp") {
+              e.preventDefault();
+              // Focus on last entry checkbox
+              const checkboxes = document.querySelectorAll(
+                'tbody input[type="checkbox"]'
+              );
+              if (checkboxes.length > 0) {
+                checkboxes[checkboxes.length - 1].focus();
+                return;
+              }
+            }
+          }
+
+          // Press escape to defocus any focused element
+          if (e.key === "Escape") {
+            // Blur the active element to remove focus
+            if (document.activeElement) {
+              document.activeElement.blur();
+            }
+            return;
+          }
+
+          // Press left to go to the parent directory when not focusing on anything or when focusing on a checkbox in the file table
+          if (
+            e.key === "ArrowLeft" &&
+            (document.activeElement === document.body ||
+              (document.activeElement.tagName === "INPUT" &&
+                document.activeElement.type === "checkbox" &&
+                document.activeElement.closest(".file-table")))
+          ) {
+            e.preventDefault();
+            elements.btnParent.click();
+            return;
+          }
+
+          // Skip if we're in an input field (except file-table checkboxes) or textarea
+          if (
+            (e.target.tagName === "INPUT" &&
+              !(
+                e.target.type === "checkbox" &&
+                e.target.closest(".file-table")
+              )) ||
+            e.target.tagName === "TEXTAREA"
+          ) {
+            return;
+          }
+
+          // Prevent default for arrow keys if not focused on an input field
+          if (
+            ["ArrowLeft", "ArrowRight", "ArrowUp", "ArrowDown"].includes(
+              e.key
+            )
+          ) {
+            e.preventDefault();
+          }
+
+          // Skip if modifier keys are pressed
+          if (e.ctrlKey || e.metaKey || e.altKey) {
+            return;
+          }
+
+          switch (e.key.toLowerCase()) {
+            case "s":
+              // Focus on filter input
+              e.preventDefault();
+              elements.filterInput.focus();
+              break;
+
+            case "delete":
+            case "backspace":
+              // Delete selected items
+              if (state.selected.size > 0 && !elements.btnDelete.disabled) {
+                e.preventDefault();
+                elements.btnDelete.click();
+              }
+              break;
+
+            case "f":
+              // New file
+              e.preventDefault();
+              elements.btnNewFile.click();
+              break;
+
+            case "d":
+              // New directory
+              e.preventDefault();
+              elements.btnNewDirectory.click();
+              break;
+
+            case "m":
+              // Move
+              if (state.selected.size > 0 && !elements.btnMove.disabled) {
+                e.preventDefault();
+                elements.btnMove.click();
+              }
+              break;
+
+            case "c":
+              // Copy
+              if (state.selected.size > 0 && !elements.btnCopy.disabled) {
+                e.preventDefault();
+                elements.btnCopy.click();
+              }
+              break;
+
+            case "e":
+              // Edit file
+              if (state.selected.size === 1 && !elements.btnEdit.disabled) {
+                e.preventDefault();
+                elements.btnEdit.click();
+              }
+              break;
+
+            case "u":
+              // Upload
+              e.preventDefault();
+              elements.btnUpload.click();
+              break;
+
+            case "a":
+              // Select all / deselect all
+              if (e.ctrlKey || e.metaKey) {
+                // Let the browser handle Ctrl+A/Cmd+A
+                return;
+              }
+              e.preventDefault();
+              elements.selectAll.click();
+              break;
+          }
+        });
+      }
 
       // Function to set up drag and drop handlers
       function setupDragAndDrop() {
@@ -2303,9 +2903,11 @@
         let dragCounter = 0;
 
         // Prevent default drag behaviors
-        ['dragenter', 'dragover', 'dragleave', 'drop'].forEach(eventName => {
-          zone.addEventListener(eventName, preventDefaults, false);
-        });
+        ["dragenter", "dragover", "dragleave", "drop"].forEach(
+          (eventName) => {
+            zone.addEventListener(eventName, preventDefaults, false);
+          }
+        );
 
         function preventDefaults(e) {
           e.preventDefault();
@@ -2313,30 +2915,46 @@
         }
 
         // Handle drag enter
-        zone.addEventListener('dragenter', function (e) {
-          dragCounter++;
-          overlay.classList.add('active');
-        }, false);
+        zone.addEventListener(
+          "dragenter",
+          function (e) {
+            dragCounter++;
+            overlay.classList.add("active");
+          },
+          false
+        );
 
         // Handle drag over
-        zone.addEventListener('dragover', function (e) {
-          e.preventDefault();
-        }, false);
+        zone.addEventListener(
+          "dragover",
+          function (e) {
+            e.preventDefault();
+          },
+          false
+        );
 
         // Handle drag leave
-        zone.addEventListener('dragleave', function (e) {
-          dragCounter--;
-          if (dragCounter === 0) {
-            overlay.classList.remove('active');
-          }
-        }, false);
+        zone.addEventListener(
+          "dragleave",
+          function (e) {
+            dragCounter--;
+            if (dragCounter === 0) {
+              overlay.classList.remove("active");
+            }
+          },
+          false
+        );
 
         // Handle drop - this also resets the counter
-        zone.addEventListener('drop', function (e) {
-          dragCounter = 0;
-          overlay.classList.remove('active');
-          handleDrop(e);
-        }, false);
+        zone.addEventListener(
+          "drop",
+          function (e) {
+            dragCounter = 0;
+            overlay.classList.remove("active");
+            handleDrop(e);
+          },
+          false
+        );
 
         function handleDrop(e) {
           const dt = e.dataTransfer;
@@ -2372,10 +2990,100 @@
         }
       }
 
+      // Function to set up keyboard navigation between filter and checkboxes
+      function setupCheckboxNavigation() {
+        // Make checkboxes focusable
+        function makeCheckboxesFocusable() {
+          // Make select all checkbox focusable
+          elements.selectAll.setAttribute("tabindex", "0");
+
+          // Make all entry checkboxes focusable
+          const entryCheckboxes = elements.fileList.querySelectorAll(
+            'input[type="checkbox"]'
+          );
+          entryCheckboxes.forEach((checkbox) => {
+            checkbox.setAttribute("tabindex", "0");
+
+            // Add keyboard navigation for each checkbox
+            checkbox.addEventListener("keydown", (e) => {
+              if (e.key === "ArrowDown") {
+                e.preventDefault();
+                focusOnNextElement(checkbox);
+              } else if (e.key === "ArrowUp") {
+                e.preventDefault();
+                focusOnPreviousElement(checkbox);
+              }
+            });
+          });
+        }
+
+        // Add observer to make checkboxes focusable when file list updates
+        const observer = new MutationObserver(() => {
+          makeCheckboxesFocusable();
+        });
+
+        observer.observe(elements.fileList, { childList: true });
+
+        // Initial setup
+        makeCheckboxesFocusable();
+      }
+
+      // Function to focus on the next element in the navigation cycle
+      function focusOnNextElement(currentElement) {
+        // Get all focusable elements in order
+        const focusableElements = getFocusableElements();
+
+        // Find current element index
+        const currentIndex = focusableElements.indexOf(currentElement);
+
+        // Calculate next index (circular)
+        const nextIndex = (currentIndex + 1) % focusableElements.length;
+
+        // Focus on next element
+        focusableElements[nextIndex].focus();
+      }
+
+      // Function to focus on the previous element in the navigation cycle
+      function focusOnPreviousElement(currentElement) {
+        // Get all focusable elements in order
+        const focusableElements = getFocusableElements();
+
+        // Find current element index
+        const currentIndex = focusableElements.indexOf(currentElement);
+
+        // Calculate previous index (circular)
+        const prevIndex =
+          (currentIndex - 1 + focusableElements.length) %
+          focusableElements.length;
+
+        // Focus on previous element
+        focusableElements[prevIndex].focus();
+      }
+
+      // Function to get all focusable elements in the navigation cycle
+      function getFocusableElements() {
+        // Start with filter input
+        const elements = [document.getElementById("filter-input")];
+
+        // Add select all checkbox
+        elements.push(document.querySelector('th input[type="checkbox"]'));
+
+        // Add all visible entry checkboxes
+        const entryCheckboxes = Array.from(
+          document.querySelectorAll('tbody input[type="checkbox"]')
+        );
+        elements.push(...entryCheckboxes);
+
+        // Filter out any null elements
+        return elements.filter((el) => el !== null);
+      }
+
       // Start the application
       init();
     });
   </script>
 </body>
+
+</html>
 
 </html>
