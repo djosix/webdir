@@ -2,6 +2,7 @@ package main
 
 import (
 	"flag"
+	"fmt"
 	"log/slog"
 	"os"
 	"path/filepath"
@@ -24,6 +25,7 @@ func parseArgs() internal.Options {
 	flag.BoolVar(&opts.ViewOnly, "view-only", false, "disable modification feature")
 	flag.BoolVar(&opts.CreateWritable, "create-writable", false, "create writable directories and files for other users")
 	flag.Int64Var(&opts.UploadLimitMiB, "upload-limit", 4096, "maximum upload size in MiB")
+	flag.StringVar(&opts.LogLevel, "log", "info", "log level (info, debug, warn, error)")
 
 	// Define short flags
 	flag.BoolVar(&opts.NoList, "L", false, "shorthand for -no-list")
@@ -62,12 +64,24 @@ func parseArgs() internal.Options {
 	return opts
 }
 
-func init() {
-	slog.SetDefault(slog.New(slog.NewTextHandler(os.Stdout, nil)))
+func setupLogger(levelString string) {
+	var level slog.Level
+	if err := level.UnmarshalText([]byte(levelString)); err != nil {
+		fmt.Printf("error: invalid log level %q\n", levelString)
+		os.Exit(1)
+	}
+
+	handler := slog.NewTextHandler(os.Stdout, &slog.HandlerOptions{
+		Level: level,
+	})
+
+	slog.SetDefault(slog.New(handler))
 }
 
 func main() {
 	opts := parseArgs()
+
+	setupLogger(opts.LogLevel)
 
 	// Initialize and start the server
 	server := internal.NewServer(opts)

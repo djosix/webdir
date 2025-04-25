@@ -12,4 +12,5 @@ type Options struct {
 	IndexFile      string
 	DocumentRoot   string
 	UploadLimitMiB int64
+	LogLevel       string
 }
