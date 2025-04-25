@@ -560,6 +560,13 @@
         width: 300px;
       }
 
+      .progress-filename {
+        overflow: hidden;
+        text-overflow: ellipsis;
+        white-space: nowrap;
+        max-width: 200px;
+      }
+
       .upload-progress {
         background-color: var(--dialog-bg);
         color: var(--text-color);
@@ -1754,7 +1761,7 @@
           progressElement.className = "upload-progress";
           progressElement.innerHTML = `
             <h4>
-                <span>${filename}</span>
+                <span class="progress-filename">${filename}</span>
                 <span class="progress-percent">0%</span>
             </h4>
             <div class="progress-bar-container">
