@@ -2,7 +2,7 @@
 
 A simple web server that serves files and directories and offers management functionality.
 
-<img width="1044" alt="image" src="https://github.com/user-attachments/assets/1779924f-99d9-4ead-8fbb-f5e2b0668977" />
+<img width="1079" alt="image" src="https://github.com/user-attachments/assets/86d0617b-42fa-4e59-bd8a-9ec5b85fd0ce" />
 
 ## Quickstart
 
@@ -21,6 +21,7 @@ go run github.com/djosix/webdir@latest
 
 ## Features
 
+- No extra dependencies, all you need is a Go compiler
 - Operations: List, Create, Upload, Move, Copy, Delete, Edit
 - Open file in a popup window (Shift-click) or a new tab (click or press Enter on focused file)
 - Dark mode and light mode
