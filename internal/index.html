@@ -136,10 +136,6 @@
       /* Breadcrumb styles */
       .breadcrumb {
         padding: 8px 0px;
-        border-bottom: 1px solid var(--border-color);
-        /* background-color: white;
-        border-radius: 4px;
-        border: 1px solid var(--border-color); */
       }
 
       .breadcrumb ol {
@@ -155,8 +151,8 @@
 
       .breadcrumb li:not(:last-child)::after {
         content: "/";
-        margin: 0 8px;
-        color: #ccc;
+        margin: 0 6px;
+        color: var(--border-color);
       }
 
       .breadcrumb a {
@@ -175,9 +171,6 @@
         flex-wrap: wrap;
         gap: 6px;
         padding: 10px 0px;
-        /* background-color: var(--control-panel-bg);
-        border-radius: 4px;
-        border: 1px solid var(--border-color); */
         align-items: center;
         box-shadow: 0 2px 4px rgba(0, 0, 0, 0.05);
       }
@@ -825,18 +818,17 @@
         width: 16px;
         left: 4px;
         bottom: 4px;
-        background-color: white;
+        background-color: var(--control-panel-bg);
         transition: 0.4s;
         border-radius: 50%;
       }
 
       input:checked + .slider {
-        background-color: #444;
+        background-color: #555;
       }
 
       input:checked + .slider:before {
         transform: translateX(16px);
-        background-color: var(--bg-color);
       }
 
       body.view-only #btn-new-file,
@@ -854,25 +846,21 @@
     <div class="drag-drop-zone"></div>
 
     <div class="container">
-      <header>
-        <h1>WebDir</h1>
-        <div style="display: flex; align-items: center">
+      <!-- Breadcrumb navigation with theme switch -->
+      <div class="control-container">
+        <div style="display: flex; justify-content: space-between; align-items: center; padding: 8px 0px; border-bottom: 1px solid var(--border-color);">
+          <nav class="breadcrumb">
+            <ol id="breadcrumb">
+              <li><a href="/">WebDir</a></li>
+              <!-- Dynamic breadcrumb items will be added here -->
+            </ol>
+          </nav>
           <label class="theme-switch">
             <input type="checkbox" id="theme-toggle" />
             <span class="slider"></span>
           </label>
         </div>
-      </header>
-
-      <!-- Breadcrumb navigation -->
-      <div class="control-container">
-        <nav class="breadcrumb">
-          <ol id="breadcrumb">
-            <li><a href="/">Home</a></li>
-            <!-- Dynamic breadcrumb items will be added here -->
-          </ol>
-        </nav>
-
+        
         <!-- Control bar -->
         <div class="control-bar">
           <button
