@@ -19,6 +19,12 @@ webdir
 go run github.com/djosix/webdir@latest
 ```
 
+**Using Docker:**
+
+```sh
+docker run -it --rm -v "$PWD:/data" -p 9999:9999 djosix/webdir
+```
+
 ## Features
 
 - No extra dependencies, all you need is a Go compiler
@@ -49,3 +55,13 @@ go run github.com/djosix/webdir@latest
 - `c`: Copy the selected file or directory
 - `Backspace`/`Delete`: Delete the selected file or directory
 - `e`: Edit the selected file
+
+## Docker Images
+
+```sh
+docker buildx create --use
+docker login
+
+latest_tag="$(git tag | grep ^v | tail -n1 | sed s/^v//)"
+docker buildx build --push --platform linux/amd64,linux/arm64 -t "djosix/webdir:$latest_tag" -t "djosix/webdir:latest" .
+```
