@@ -1442,7 +1442,10 @@
           async listDirectory(path) {
             try {
               const response = await fetch(
-                `/?api=list&path=${encodeURIComponent(path)}`
+                `/?api=list&path=${encodeURIComponent(path)}`,
+                {
+                  credentials: "include",
+                }
               );
               if (!response.ok) {
                 throw new Error(`HTTP error ${response.status}`);
@@ -1470,6 +1473,7 @@
                   path,
                   content: "",
                 }),
+                credentials: "include",
               });
 
               if (!response.ok) {
@@ -1498,6 +1502,7 @@
                   "Content-Type": "application/json",
                 },
                 body: JSON.stringify({ path }),
+                credentials: "include",
               });
 
               if (!response.ok) {
@@ -1593,6 +1598,7 @@
               const response = await fetch(path, {
                 method: "POST",
                 body: formData,
+                credentials: "include",
               });
 
               if (!response.ok) {
@@ -1619,6 +1625,7 @@
                   paths,
                   target,
                 }),
+                credentials: "include",
               });
 
               if (!response.ok) {
@@ -1653,6 +1660,7 @@
                   paths,
                   target,
                 }),
+                credentials: "include",
               });
 
               if (!response.ok) {
@@ -1684,6 +1692,7 @@
                   "Content-Type": "application/json",
                 },
                 body: JSON.stringify({ paths }),
+                credentials: "include",
               });
 
               if (!response.ok) {
@@ -1710,7 +1719,10 @@
           async getFileContent(path) {
             try {
               const response = await fetch(
-                `/?api=edit&path=${encodeURIComponent(path)}`
+                `/?api=edit&path=${encodeURIComponent(path)}`,
+                {
+                  credentials: "include",
+                }
               );
               if (!response.ok) {
                 throw new Error(`HTTP error ${response.status}`);
@@ -1743,6 +1755,7 @@
                   path,
                   content,
                 }),
+                credentials: "include",
               });
 
               if (!response.ok) {
