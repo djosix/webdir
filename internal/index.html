@@ -2,7 +2,7 @@
 <html lang="en">
   <head>
     <meta charset="UTF-8" />
-    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0" />
     <title>WebDir</title>
     <link rel="icon" href="data:," />
     <style>
@@ -103,14 +103,16 @@
       .container {
         max-width: 1200px;
         margin: 0 auto;
-        padding: 20px;
+        padding: 20px 30px;
+        display: flex;
+        flex-direction: column;
+        gap: 15px;
       }
 
       .control-container-wrapper {
         overflow-x: auto;
         border: 1px solid var(--border-color);
         border-radius: 4px;
-        margin-bottom: 20px;
         box-shadow: 0 2px 4px rgba(0, 0, 0, 0.05);
       }
 
@@ -119,7 +121,16 @@
         flex-direction: column;
         padding: 0px 15px;
         background-color: var(--control-panel-bg);
-        min-width: 580px;
+        min-width: 300px;
+      }
+
+      .control-head {
+        display: flex;
+        flex-direction: row;
+        justify-content: space-between;
+        align-items: center;
+        padding: 8px 0px;
+        border-bottom: 1px solid var(--border-color);
       }
 
       /* Breadcrumb styles */
@@ -161,6 +172,21 @@
         gap: 6px;
         padding: 10px 0px;
         align-items: center;
+        justify-content: space-between;
+      }
+
+      .control-bar-1 {
+        display: flex;
+        flex-direction: row;
+        flex-wrap: wrap;
+        gap: 6px;
+        align-items: center;
+      }
+
+      .control-bar-2 {
+        display: flex;
+        flex-direction: row;
+        gap: 6px;
       }
 
       .btn {
@@ -233,6 +259,7 @@
         padding: 2px 8px;
         font-size: 12px;
         font-weight: bold;
+        margin-left: 4px;
       }
 
       .file-table-container {
@@ -253,7 +280,7 @@
         box-shadow: 0 1px 3px rgba(0, 0, 0, 0.1);
         table-layout: fixed;
         white-space: nowrap;
-        min-width: 580px;
+        min-width: 640px;
       }
 
       .file-table th,
@@ -772,6 +799,7 @@
         width: 40px;
         height: 24px;
         margin-left: 10px;
+        flex-shrink: 0;
       }
 
       .theme-switch input {
@@ -822,15 +850,46 @@
         display: none;
       }
 
-      @media (max-width: 950px) {
+      @media only screen and (max-width: 960px) {
         #selection-count-text {
           display: none;
         }
+
+        .container {
+          padding: 10px 20px;
+          gap: 10px;
+        }
       }
 
-      @media (max-width: 870px) {
+      @media only screen and (max-width: 880px) {
         .control-bar .btn .btn-text {
           display: none;
+        }
+
+        .btn svg {
+          margin-right: 0px;
+        }
+
+        .container {
+          padding: 10px;
+          gap: 10px;
+        }
+      }
+
+      @media only screen and (max-width: 580px) {
+        .control-bar {
+          flex-direction: column;
+          gap: 15px;
+        }
+
+        .control-bar-1 {
+          width: 100%;
+          /* justify-content: space-between; */
+        }
+
+        .control-bar-2 {
+          width: 100%;
+          justify-content: space-between;
         }
       }
     </style>
@@ -842,15 +901,7 @@
       <!-- Breadcrumb navigation with theme switch -->
       <div class="control-container-wrapper">
         <div class="control-container">
-          <div
-            style="
-              display: flex;
-              justify-content: space-between;
-              align-items: center;
-              padding: 8px 0px;
-              border-bottom: 1px solid var(--border-color);
-            "
-          >
+          <div class="control-head">
             <nav class="breadcrumb">
               <ol id="breadcrumb">
                 <li><a href="/">WebDir</a></li>
@@ -865,205 +916,209 @@
 
           <!-- Control bar -->
           <div class="control-bar">
-            <button
-              type="button"
-              id="btn-parent"
-              class="btn btn-parent"
-              aria-label="Parent Directory"
-            >
-              <svg
-                xmlns="http://www.w3.org/2000/svg"
-                viewBox="0 0 24 24"
-                width="24"
-                height="24"
-                fill="none"
-                stroke="currentColor"
-                stroke-width="2"
-                stroke-linecap="round"
-                stroke-linejoin="round"
+            <div class="control-bar-1">
+              <button
+                type="button"
+                id="btn-parent"
+                class="btn btn-parent"
+                aria-label="Parent Directory"
               >
-                <path d="M15 18l-6-6 6-6" />
-              </svg>
-            </button>
+                <svg
+                  xmlns="http://www.w3.org/2000/svg"
+                  viewBox="0 0 24 24"
+                  width="24"
+                  height="24"
+                  fill="none"
+                  stroke="currentColor"
+                  stroke-width="2"
+                  stroke-linecap="round"
+                  stroke-linejoin="round"
+                >
+                  <path d="M15 18l-6-6 6-6" />
+                </svg>
+              </button>
 
-            <div class="filter-container">
-              <svg
-                xmlns="http://www.w3.org/2000/svg"
-                viewBox="0 0 24 24"
-                width="24"
-                height="24"
-                fill="none"
-                stroke="currentColor"
-                stroke-width="2"
-                stroke-linecap="round"
-                stroke-linejoin="round"
-              >
-                <circle cx="11" cy="11" r="8" />
-                <line x1="21" y1="21" x2="16.65" y2="16.65" />
-              </svg>
-              <input
-                type="text"
-                id="filter-input"
-                class="filter-input"
-                placeholder="RegExp name filter..."
-                autocomplete="off"
-                autofocus
-              />
+              <div class="filter-container">
+                <svg
+                  xmlns="http://www.w3.org/2000/svg"
+                  viewBox="0 0 24 24"
+                  width="24"
+                  height="24"
+                  fill="none"
+                  stroke="currentColor"
+                  stroke-width="2"
+                  stroke-linecap="round"
+                  stroke-linejoin="round"
+                >
+                  <circle cx="11" cy="11" r="8" />
+                  <line x1="21" y1="21" x2="16.65" y2="16.65" />
+                </svg>
+                <input
+                  type="text"
+                  id="filter-input"
+                  class="filter-input"
+                  placeholder="RegExp name filter..."
+                  autocomplete="off"
+                  autofocus
+                />
+              </div>
+
+              <div class="selection-badge">
+                <span id="selection-count">0</span>/<span id="total-count"
+                  >0</span
+                >
+                <span id="selection-count-text">selected</span>
+              </div>
             </div>
 
-            <button type="button" id="btn-new-file" class="btn">
-              <svg
-                xmlns="http://www.w3.org/2000/svg"
-                viewBox="0 0 24 24"
-                width="24"
-                height="24"
-                fill="none"
-                stroke="currentColor"
-                stroke-width="2"
-                stroke-linecap="round"
-                stroke-linejoin="round"
-              >
-                <path
-                  d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"
-                />
-                <polyline points="14 2 14 8 20 8" />
-                <line x1="12" y1="18" x2="12" y2="12" />
-                <line x1="9" y1="15" x2="15" y2="15" />
-              </svg>
-              <span class="btn-text">File</span>
-            </button>
+            <div class="control-bar-2">
+              <button type="button" id="btn-new-file" class="btn">
+                <svg
+                  xmlns="http://www.w3.org/2000/svg"
+                  viewBox="0 0 24 24"
+                  width="24"
+                  height="24"
+                  fill="none"
+                  stroke="currentColor"
+                  stroke-width="2"
+                  stroke-linecap="round"
+                  stroke-linejoin="round"
+                >
+                  <path
+                    d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"
+                  />
+                  <polyline points="14 2 14 8 20 8" />
+                  <line x1="12" y1="18" x2="12" y2="12" />
+                  <line x1="9" y1="15" x2="15" y2="15" />
+                </svg>
+                <span class="btn-text">File</span>
+              </button>
 
-            <button type="button" id="btn-new-directory" class="btn">
-              <svg
-                xmlns="http://www.w3.org/2000/svg"
-                viewBox="0 0 24 24"
-                width="24"
-                height="24"
-                fill="none"
-                stroke="currentColor"
-                stroke-width="2"
-                stroke-linecap="round"
-                stroke-linejoin="round"
-              >
-                <path
-                  d="M22 19a2 2 0 0 1-2 2H4a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h5l2 3h9a2 2 0 0 1 2 2z"
-                />
-                <line x1="12" y1="11" x2="12" y2="17" />
-                <line x1="9" y1="14" x2="15" y2="14" />
-              </svg>
-              <span class="btn-text">Directory</span>
-            </button>
+              <button type="button" id="btn-new-directory" class="btn">
+                <svg
+                  xmlns="http://www.w3.org/2000/svg"
+                  viewBox="0 0 24 24"
+                  width="24"
+                  height="24"
+                  fill="none"
+                  stroke="currentColor"
+                  stroke-width="2"
+                  stroke-linecap="round"
+                  stroke-linejoin="round"
+                >
+                  <path
+                    d="M22 19a2 2 0 0 1-2 2H4a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h5l2 3h9a2 2 0 0 1 2 2z"
+                  />
+                  <line x1="12" y1="11" x2="12" y2="17" />
+                  <line x1="9" y1="14" x2="15" y2="14" />
+                </svg>
+                <span class="btn-text">Directory</span>
+              </button>
 
-            <button type="button" id="btn-upload" class="btn">
-              <svg
-                xmlns="http://www.w3.org/2000/svg"
-                viewBox="0 0 24 24"
-                width="24"
-                height="24"
-                fill="none"
-                stroke="currentColor"
-                stroke-width="2"
-                stroke-linecap="round"
-                stroke-linejoin="round"
-              >
-                <path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4" />
-                <polyline points="17 8 12 3 7 8" />
-                <line x1="12" y1="3" x2="12" y2="15" />
-              </svg>
-              <span class="btn-text">Upload</span>
-            </button>
+              <button type="button" id="btn-upload" class="btn">
+                <svg
+                  xmlns="http://www.w3.org/2000/svg"
+                  viewBox="0 0 24 24"
+                  width="24"
+                  height="24"
+                  fill="none"
+                  stroke="currentColor"
+                  stroke-width="2"
+                  stroke-linecap="round"
+                  stroke-linejoin="round"
+                >
+                  <path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4" />
+                  <polyline points="17 8 12 3 7 8" />
+                  <line x1="12" y1="3" x2="12" y2="15" />
+                </svg>
+                <span class="btn-text">Upload</span>
+              </button>
 
-            <button type="button" id="btn-move" class="btn" disabled>
-              <svg
-                xmlns="http://www.w3.org/2000/svg"
-                viewBox="0 0 24 24"
-                width="24"
-                height="24"
-                fill="none"
-                stroke="currentColor"
-                stroke-width="2"
-                stroke-linecap="round"
-                stroke-linejoin="round"
-              >
-                <path d="M5 9l-3 3 3 3" />
-                <path d="M9 5l3-3 3 3" />
-                <path d="M19 9l3 3-3 3" />
-                <path d="M9 19l3 3 3-3" />
-                <path d="M21 12H3" />
-                <path d="M12 3v18" />
-              </svg>
-              <span class="btn-text">Move</span>
-            </button>
+              <button type="button" id="btn-move" class="btn" disabled>
+                <svg
+                  xmlns="http://www.w3.org/2000/svg"
+                  viewBox="0 0 24 24"
+                  width="24"
+                  height="24"
+                  fill="none"
+                  stroke="currentColor"
+                  stroke-width="2"
+                  stroke-linecap="round"
+                  stroke-linejoin="round"
+                >
+                  <path d="M5 9l-3 3 3 3" />
+                  <path d="M9 5l3-3 3 3" />
+                  <path d="M19 9l3 3-3 3" />
+                  <path d="M9 19l3 3 3-3" />
+                  <path d="M21 12H3" />
+                  <path d="M12 3v18" />
+                </svg>
+                <span class="btn-text">Move</span>
+              </button>
 
-            <button type="button" id="btn-copy" class="btn" disabled>
-              <svg
-                xmlns="http://www.w3.org/2000/svg"
-                viewBox="0 0 24 24"
-                width="24"
-                height="24"
-                fill="none"
-                stroke="currentColor"
-                stroke-width="2"
-                stroke-linecap="round"
-                stroke-linejoin="round"
-              >
-                <rect x="9" y="9" width="13" height="13" rx="2" ry="2"></rect>
-                <path
-                  d="M5 15H4a2 2 0 0 1-2-2V4a2 2 0 0 1 2-2h9a2 2 0 0 1 2 2v1"
-                ></path>
-              </svg>
-              <span class="btn-text">Copy</span>
-            </button>
+              <button type="button" id="btn-copy" class="btn" disabled>
+                <svg
+                  xmlns="http://www.w3.org/2000/svg"
+                  viewBox="0 0 24 24"
+                  width="24"
+                  height="24"
+                  fill="none"
+                  stroke="currentColor"
+                  stroke-width="2"
+                  stroke-linecap="round"
+                  stroke-linejoin="round"
+                >
+                  <rect x="9" y="9" width="13" height="13" rx="2" ry="2"></rect>
+                  <path
+                    d="M5 15H4a2 2 0 0 1-2-2V4a2 2 0 0 1 2-2h9a2 2 0 0 1 2 2v1"
+                  ></path>
+                </svg>
+                <span class="btn-text">Copy</span>
+              </button>
 
-            <button type="button" id="btn-delete" class="btn" disabled>
-              <svg
-                xmlns="http://www.w3.org/2000/svg"
-                viewBox="0 0 24 24"
-                width="24"
-                height="24"
-                fill="none"
-                stroke="currentColor"
-                stroke-width="2"
-                stroke-linecap="round"
-                stroke-linejoin="round"
-              >
-                <polyline points="3 6 5 6 21 6" />
-                <path
-                  d="M19 6v14a2 2 0 0 1-2 2H7a2 2 0 0 1-2-2V6m3 0V4a2 2 0 0 1 2-2h4a2 2 0 0 1 2 2v2"
-                />
-                <line x1="10" y1="11" x2="10" y2="17" />
-                <line x1="14" y1="11" x2="14" y2="17" />
-              </svg>
-              <span class="btn-text">Delete</span>
-            </button>
+              <button type="button" id="btn-delete" class="btn" disabled>
+                <svg
+                  xmlns="http://www.w3.org/2000/svg"
+                  viewBox="0 0 24 24"
+                  width="24"
+                  height="24"
+                  fill="none"
+                  stroke="currentColor"
+                  stroke-width="2"
+                  stroke-linecap="round"
+                  stroke-linejoin="round"
+                >
+                  <polyline points="3 6 5 6 21 6" />
+                  <path
+                    d="M19 6v14a2 2 0 0 1-2 2H7a2 2 0 0 1-2-2V6m3 0V4a2 2 0 0 1 2-2h4a2 2 0 0 1 2 2v2"
+                  />
+                  <line x1="10" y1="11" x2="10" y2="17" />
+                  <line x1="14" y1="11" x2="14" y2="17" />
+                </svg>
+                <span class="btn-text">Delete</span>
+              </button>
 
-            <button type="button" id="btn-edit" class="btn" disabled>
-              <svg
-                xmlns="http://www.w3.org/2000/svg"
-                viewBox="0 0 24 24"
-                width="24"
-                height="24"
-                fill="none"
-                stroke="currentColor"
-                stroke-width="2"
-                stroke-linecap="round"
-                stroke-linejoin="round"
-              >
-                <path
-                  d="M11 4H4a2 2 0 0 0-2 2v14a2 2 0 0 0 2 2h14a2 2 0 0 0 2-2v-7"
-                />
-                <path
-                  d="M18.5 2.5a2.121 2.121 0 0 1 3 3L12 15l-4 1 1-4 9.5-9.5z"
-                />
-              </svg>
-              <span class="btn-text">Edit</span>
-            </button>
-
-            <div class="selection-badge">
-              <span id="selection-count">0</span>/<span id="total-count"
-                >0</span
-              >
-              <span id="selection-count-text">selected</span>
+              <button type="button" id="btn-edit" class="btn" disabled>
+                <svg
+                  xmlns="http://www.w3.org/2000/svg"
+                  viewBox="0 0 24 24"
+                  width="24"
+                  height="24"
+                  fill="none"
+                  stroke="currentColor"
+                  stroke-width="2"
+                  stroke-linecap="round"
+                  stroke-linejoin="round"
+                >
+                  <path
+                    d="M11 4H4a2 2 0 0 0-2 2v14a2 2 0 0 0 2 2h14a2 2 0 0 0 2-2v-7"
+                  />
+                  <path
+                    d="M18.5 2.5a2.121 2.121 0 0 1 3 3L12 15l-4 1 1-4 9.5-9.5z"
+                  />
+                </svg>
+                <span class="btn-text">Edit</span>
+              </button>
             </div>
           </div>
         </div>
