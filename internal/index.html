@@ -1975,6 +1975,19 @@
           // Apply current sort
           const sortedEntries = sortEntries([...state.entries]);
 
+          // Show a message when there are no files
+          if (sortedEntries.length === 0) {
+            const row = document.createElement("tr");
+            const cell = document.createElement("td");
+            cell.textContent = "No files or directories found";
+            cell.style.textAlign = "center";
+            cell.style.padding = "30px";
+            cell.colSpan = 5; // Span all columns
+            row.appendChild(cell);
+            elements.fileList.appendChild(row);
+            return;
+          }
+
           // Create rows for each entry
           sortedEntries.forEach((entry) => {
             const row = document.createElement("tr");
