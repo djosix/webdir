@@ -62,6 +62,5 @@ docker run -it --rm -v "$PWD:/data" -p 9999:9999 djosix/webdir
 docker buildx create --use
 docker login
 
-latest_tag="$(git tag | grep ^v | tail -n1 | sed s/^v//)"
-docker buildx build --push --platform linux/amd64,linux/arm64 -t "djosix/webdir:$latest_tag" -t "djosix/webdir:latest" .
+docker buildx build --push --platform linux/amd64,linux/arm64 -t "djosix/webdir:latest" .
 ```
