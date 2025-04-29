@@ -15,6 +15,7 @@ import (
 	"path/filepath"
 	"sort"
 	"strings"
+	"sync"
 	"time"
 )
 
@@ -26,13 +27,25 @@ type Server struct {
 
 // NewServer creates a new server instance
 func NewServer(opts Options) *Server {
+	opts.BasePath = "/" + strings.Trim(opts.BasePath, "/")
+	if !strings.HasSuffix(opts.BasePath, "/") {
+		opts.BasePath += "/"
+	}
+
 	server := &Server{
 		Options: opts,
 		Mux:     http.NewServeMux(),
 	}
 
 	// Setup routes
-	server.setupRoutes()
+	{
+		server.Mux.HandleFunc(opts.BasePath, server.handleRequest)
+
+		if opts.BasePath != "/" {
+			server.Mux.Handle("/",
+				http.RedirectHandler(opts.BasePath, http.StatusTemporaryRedirect))
+		}
+	}
 
 	return server
 }
@@ -73,45 +86,12 @@ func (s *Server) Start() {
 	}
 }
 
-// setupRoutes initializes the HTTP route handlers
-func (s *Server) setupRoutes() {
-	// Catch-all handler for both API requests and file/directory access
-	s.Mux.HandleFunc(s.prefixPath("/"), s.handleRequest)
-}
-
-// prefixPath adds the base path prefix to the given path
-func (s *Server) prefixPath(path string) string {
-	if s.Options.BasePath == "" {
-		return path
-	}
-	return s.Options.BasePath + path
-}
-
-// relativePath converts a web path to a filesystem path
-func (s *Server) relativePath(webPath string) string {
-	// Remove the base path prefix if it exists
-	if s.Options.BasePath != "" && strings.HasPrefix(webPath, s.Options.BasePath) {
-		webPath = webPath[len(s.Options.BasePath):]
-	}
-
-	// Ensure the path starts with / for consistency
-	if !strings.HasPrefix(webPath, "/") {
-		webPath = "/" + webPath
-	}
-
-	// Convert to a relative path
-	rel := strings.TrimPrefix(webPath, "/")
-	if rel == "" {
-		return "."
-	}
-	return rel
-}
-
 // absolutePath converts a web path to an absolute filesystem path
 func (s *Server) absolutePath(webPath string) string {
-	relPath := s.relativePath(webPath)
-	absPath := filepath.Join(s.Options.DocumentRoot, relPath)
-	return absPath
+	x := strings.TrimSuffix(s.Options.BasePath, "/")
+	x = strings.TrimPrefix(webPath, x)
+	x = strings.Trim(x, "/")
+	return filepath.Join(s.Options.DocumentRoot, x)
 }
 
 // webPath converts a filesystem path to a web path
@@ -124,16 +104,8 @@ func (s *Server) webPath(fsPath string) string {
 
 	// Convert to web path format (use forward slashes)
 	webPath := filepath.ToSlash(rel)
-
-	// Add leading slash
-	if !strings.HasPrefix(webPath, "/") {
-		webPath = "/" + webPath
-	}
-
-	// Add base path if configured
-	if s.Options.BasePath != "" {
-		webPath = s.Options.BasePath + webPath
-	}
+	webPath = strings.TrimPrefix(webPath, "/")
+	webPath = s.Options.BasePath + webPath
 
 	return webPath
 }
@@ -237,6 +209,11 @@ func (s *Server) handleRequest(w http.ResponseWriter, r *http.Request) {
 
 	// Handle directory
 	if info.IsDir() {
+		if !strings.HasSuffix(r.URL.Path, "/") {
+			http.Redirect(w, r, r.URL.Path+"/", http.StatusTemporaryRedirect)
+			return
+		}
+
 		// Check for index file if configured
 		if s.Options.IndexFile != "" {
 			indexPath := filepath.Join(fsPath, s.Options.IndexFile)
@@ -282,16 +259,42 @@ func (s *Server) handleRequest(w http.ResponseWriter, r *http.Request) {
 	http.ServeContent(w, r, filepath.Base(fsPath), stat.ModTime(), file)
 }
 
-//go:embed index.html
-var directoryListingTemplate string
+var (
+	//go:embed index.html
+	indexHtmlContent string
+
+	onceFormatIndexHtml sync.Once
+)
 
 // serveDirectoryListing generates and serves the HTML for directory listing
 func (s *Server) serveDirectoryListing(w http.ResponseWriter, r *http.Request, fsPath, urlPath string) {
-	htmlContent := directoryListingTemplate
+	onceFormatIndexHtml.Do(func() {
+		if s.Options.ViewOnly {
+			indexHtmlContent = strings.Replace(
+				indexHtmlContent,
+				"<body>",
+				`<body class="view-only">`,
+				1,
+			)
+		}
 
-	if s.Options.ViewOnly {
-		htmlContent = strings.ReplaceAll(htmlContent, "<body>", `<body class="view-only">`)
-	}
+		basePath := strings.TrimSuffix(s.Options.BasePath, "/")
+		if basePath != "" {
+			basePathJson, err := json.Marshal(basePath)
+			if err != nil {
+				panic(err)
+			}
+
+			indexHtmlContent = strings.Replace(
+				indexHtmlContent,
+				`const basePath = "";`,
+				fmt.Sprintf(`const basePath = %s;`, string(basePathJson)),
+				1,
+			)
+		}
+	})
+
+	htmlContent := indexHtmlContent
 
 	// Set proper caching headers to improve performance
 	w.Header().Set("Cache-Control", "no-cache")

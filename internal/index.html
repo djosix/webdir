@@ -904,8 +904,8 @@
           <div class="control-head">
             <nav class="breadcrumb">
               <ol id="breadcrumb">
-                <li><a href="/">WebDir</a></li>
                 <!-- Dynamic breadcrumb items will be added here -->
+                <li><a href="#">WebDir</a></li>
               </ol>
             </nav>
             <label class="theme-switch">
@@ -1345,6 +1345,8 @@
     </div>
 
     <script>
+      const basePath = "";
+
       // Theme switching functionality
       function setTheme(isDark) {
         if (isDark) {
@@ -1442,7 +1444,7 @@
           async listDirectory(path) {
             try {
               const response = await fetch(
-                `/?api=list&path=${encodeURIComponent(path)}`,
+                `${basePath}/?api=list&path=${encodeURIComponent(path)}`,
                 {
                   credentials: "include",
                 }
@@ -1464,7 +1466,7 @@
           // Create file
           async createFile(path) {
             try {
-              const response = await fetch("/?api=edit", {
+              const response = await fetch(`${basePath}/?api=edit`, {
                 method: "POST",
                 headers: {
                   "Content-Type": "application/json",
@@ -1496,7 +1498,7 @@
           // Create directory
           async createDirectory(path) {
             try {
-              const response = await fetch("/?api=mkdir", {
+              const response = await fetch(`${basePath}/?api=mkdir`, {
                 method: "POST",
                 headers: {
                   "Content-Type": "application/json",
@@ -1545,7 +1547,7 @@
               const uploadPromise = new Promise((resolve, reject) => {
                 xhr.open(
                   "POST",
-                  `/?api=upload&path=${encodeURIComponent(path)}`
+                  `${basePath}/?api=upload&path=${encodeURIComponent(path)}`
                 );
 
                 xhr.upload.addEventListener("progress", (event) => {
@@ -1616,7 +1618,7 @@
           // Move files/directories
           async moveItems(paths, target) {
             try {
-              const response = await fetch("/?api=move", {
+              const response = await fetch(`${basePath}/?api=move`, {
                 method: "POST",
                 headers: {
                   "Content-Type": "application/json",
@@ -1651,7 +1653,7 @@
           // Copy files/directories
           async copyItems(paths, target) {
             try {
-              const response = await fetch("/?api=copy", {
+              const response = await fetch(`${basePath}/?api=copy`, {
                 method: "POST",
                 headers: {
                   "Content-Type": "application/json",
@@ -1686,7 +1688,7 @@
           // Delete files/directories
           async deleteItems(paths) {
             try {
-              const response = await fetch("/?api=delete", {
+              const response = await fetch(`${basePath}/?api=delete`, {
                 method: "POST",
                 headers: {
                   "Content-Type": "application/json",
@@ -1719,7 +1721,7 @@
           async getFileContent(path) {
             try {
               const response = await fetch(
-                `/?api=edit&path=${encodeURIComponent(path)}`,
+                `${basePath}/?api=edit&path=${encodeURIComponent(path)}`,
                 {
                   credentials: "include",
                 }
@@ -1746,7 +1748,7 @@
           // Save file content
           async saveFileContent(path, content) {
             try {
-              const response = await fetch("/?api=edit", {
+              const response = await fetch(`${basePath}/?api=edit`, {
                 method: "POST",
                 headers: {
                   "Content-Type": "application/json",
@@ -1942,32 +1944,28 @@
 
         // Update breadcrumb navigation
         function updateBreadcrumb() {
-          // Clear existing items except Home
-          while (elements.breadcrumb.children.length > 1) {
-            elements.breadcrumb.removeChild(elements.breadcrumb.lastChild);
-          }
-
-          // Skip if we're at root or at dot path
-          if (state.currentPath === "/" || state.currentPath === "/.") {
-            return;
-          }
+          // Clear existing items
+          elements.breadcrumb.innerHTML = "";
 
           // Split path and create breadcrumb items
-          const parts = state.currentPath.split("/").filter((p) => p);
-          let currentPath = "";
+          const parts = state.currentPath.slice(basePath.length).split("/");
+          if (parts[parts.length - 1] === ".") {
+            parts.pop();
+          }
+
+          let currentPath = "/";
+          let currentText = "WebDir";
 
           parts.forEach((part, index) => {
-            currentPath += "/" + part;
-
-            // Ensure the path ends with a slash for directories
-            let targetPath = currentPath;
-            if (!targetPath.endsWith("/")) {
-              targetPath += "/";
+            if (part) {
+              currentPath += part + "/";
+              currentText = part;
             }
+            const targetPath = basePath + currentPath;
 
             const li = document.createElement("li");
             const a = document.createElement("a");
-            a.textContent = part;
+            a.textContent = currentText;
             a.href = targetPath;
             a.addEventListener("click", (e) => {
               e.preventDefault();
@@ -2291,8 +2289,8 @@
             state.originalOrder = [...contents.entries];
 
             // Update window title to show current path
-            const pathName = contents.path === "/." ? "/" : contents.path;
-            document.title = pathName;
+            const pathName = contents.path.slice(basePath.length);
+            document.title = pathName.replace(/\/\.$/, "/");
 
             // Update URL without reloading the page
             history.pushState(null, "", path);
@@ -2304,7 +2302,8 @@
             elements.filterInput.value = "";
 
             // Disable parent button if we're at the root
-            elements.btnParent.disabled = path === "/";
+            elements.btnParent.disabled =
+              path.replace(/\/\.?$/, "") === basePath;
 
             // Focus on the checkbox of the entry that matches the previous path
             document
@@ -2366,10 +2365,6 @@
 
         // Handle parent directory button click
         elements.btnParent.addEventListener("click", () => {
-          if (state.currentPath === "/") {
-            return;
-          }
-
           const parentPath = state.currentPath.substring(
             0,
             state.currentPath.lastIndexOf("/")
