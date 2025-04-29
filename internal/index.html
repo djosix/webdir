@@ -2367,7 +2367,7 @@
         elements.btnParent.addEventListener("click", () => {
           const parentPath = state.currentPath.substring(
             0,
-            state.currentPath.lastIndexOf("/")
+            state.currentPath.lastIndexOf("/") + 1
           );
           navigateTo(parentPath || "/");
         });
