@@ -2314,6 +2314,13 @@
               ?.closest(".file-table tr")
               ?.querySelector('input[type="checkbox"]')
               ?.focus();
+
+            // Focus on the first entry if no other element is focused
+            if (document.activeElement === document.body) {
+              document
+                .querySelector('.file-table tr td input[type="checkbox"]')
+                ?.focus();
+            }
           } catch (error) {
             console.error("Navigation error:", error);
           }
