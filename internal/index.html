@@ -2074,11 +2074,13 @@
             iconSpan.innerHTML = entry.isDir ? icons.directory : icons.file;
             nameContainer.appendChild(iconSpan);
 
+            const fullEntryPath = basePath + entry.path;
+
             // Name with link
             const nameLink = document.createElement("a");
             nameLink.textContent = entry.name;
             nameLink.title = entry.name;
-            nameLink.href = entry.path;
+            nameLink.href = fullEntryPath;
             nameLink.addEventListener("click", (e) => {
               if (entry.isDir) {
                 if (!e.metaKey && !e.ctrlKey) {
@@ -2094,13 +2096,13 @@
                   const left = (window.screen.width - maxWidth) / 2;
                   const top = (window.screen.height - maxHeight) / 2;
                   window.open(
-                    entry.path,
+                    fullEntryPath,
                     "webdirPreview",
                     `width=${maxWidth},height=${maxHeight},top=${top},left=${left},resizable=yes,scrollbars=yes`
                   );
                 } else {
                   e.preventDefault();
-                  window.open(entry.path, "_blank");
+                  window.open(fullEntryPath, "_blank");
                 }
               }
             });
@@ -2265,7 +2267,7 @@
             const contents = await api.listDirectory(path);
 
             // Store previous path
-            const previousPath = state.currentPath + "/";
+            const previousPath = state.currentPath;
 
             // Update state
             state.currentPath = path.replace(/\/+$/, "");
