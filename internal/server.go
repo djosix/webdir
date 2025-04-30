@@ -89,17 +89,23 @@ func (s *Server) Start() {
 
 // absolutePath converts a web path to an absolute filesystem path
 func (s *Server) absolutePath(webPath string) (string, bool) {
+	parts := []string{}
+
 	for part := range strings.SplitSeq(webPath, "/") {
-		if part == ".." {
-			return "", false
+		if part == "." || part == "" {
+			continue
+		}
+		if part == ".." && len(parts) > 0 {
+			parts = parts[:len(parts)-1]
+			continue
 		}
 		if strings.Contains(part, string(filepath.Separator)) {
 			return "", false
 		}
+		parts = append(parts, part)
 	}
 
-	relPath := strings.TrimPrefix(webPath, strings.TrimRight(s.Options.BasePath, "/"))
-	relPath = strings.Join(strings.Split(relPath, "/"), string(filepath.Separator))
+	relPath := strings.Join(parts, string(filepath.Separator))
 	fsPath := filepath.Join(s.Options.DocumentRoot, relPath)
 
 	if !s.isPathInDocumentRoot(fsPath) {
@@ -117,12 +123,13 @@ func (s *Server) webPath(fsPath string) string {
 		return ""
 	}
 
-	// Convert to web path format (use forward slashes)
-	webPath := filepath.ToSlash(rel)
-	webPath = strings.TrimPrefix(webPath, "/")
-	webPath = s.Options.BasePath + webPath
+	// Convert to web subPath format (use forward slashes)
+	subPath := strings.Trim(filepath.ToSlash(rel), "/")
+	if subPath == "." {
+		return "/"
+	}
 
-	return webPath
+	return "/" + subPath
 }
 
 // authMiddleware implements HTTP Basic Authentication if enabled
@@ -202,7 +209,7 @@ func (s *Server) handleRequest(w http.ResponseWriter, r *http.Request) {
 
 	// Regular file/directory request
 	// Get the relative path from the URL
-	urlPath := r.URL.Path
+	urlPath := strings.TrimPrefix(r.URL.Path, s.Options.BasePath)
 	fsPath, ok := s.absolutePath(urlPath)
 	if !ok {
 		sendJSONError(w, "Forbidden", http.StatusForbidden)

@@ -1628,7 +1628,9 @@
                 },
                 body: JSON.stringify({
                   paths,
-                  target,
+                  target: target.startsWith("/")
+                    ? target
+                    : state.currentPath + "/" + target,
                 }),
                 credentials: "include",
               });
@@ -1663,7 +1665,9 @@
                 },
                 body: JSON.stringify({
                   paths,
-                  target,
+                  target: target.startsWith("/")
+                    ? target
+                    : state.currentPath + "/" + target,
                 }),
                 credentials: "include",
               });
@@ -1951,10 +1955,8 @@
           elements.breadcrumb.innerHTML = "";
 
           // Split path and create breadcrumb items
-          const parts = state.currentPath.slice(basePath.length).split("/");
-          if (parts[parts.length - 1] === ".") {
-            parts.pop();
-          }
+          const parts =
+            state.currentPath === "/" ? [""] : state.currentPath.split("/");
 
           let currentPath = "/";
           let currentText = "WebDir";
@@ -2292,11 +2294,10 @@
             state.originalOrder = [...contents.entries];
 
             // Update window title to show current path
-            const pathName = contents.path.slice(basePath.length);
-            document.title = pathName.replace(/\/\.$/, "/");
+            document.title = path;
 
             // Update URL without reloading the page
-            history.pushState(null, "", path);
+            history.pushState(null, "", basePath + path);
 
             // Update UI
             updateUI();
@@ -2305,8 +2306,7 @@
             elements.filterInput.value = "";
 
             // Disable parent button if we're at the root
-            elements.btnParent.disabled =
-              path.replace(/\/\.?$/, "") === basePath;
+            elements.btnParent.disabled = path === "/";
 
             // Focus on the checkbox of the entry that matches the previous path
             document
@@ -2523,24 +2523,12 @@
           if (selectedEntries.length === 1) {
             // For single item, default to the item's name for renaming
             const selected = selectedEntries[0];
-            const name = selected.name.endsWith("/")
+            targetPath = selected.name.endsWith("/")
               ? selected.name.substring(0, selected.name.length - 1)
               : selected.name;
-
-            // Handle path construction to avoid /./filename issues
-            if (state.currentPath === "/" || state.currentPath === "/.") {
-              // At root, just use the name
-              targetPath = "/" + name;
-            } else {
-              // In a subdirectory
-              targetPath =
-                state.currentPath +
-                (state.currentPath.endsWith("/") ? "" : "/") +
-                name;
-            }
           } else {
             // Multiple items selected, just use current path
-            targetPath = state.currentPath;
+            targetPath = "";
           }
 
           elements.moveTarget.value = targetPath;
@@ -2578,10 +2566,18 @@
             return;
           }
 
-          // Show copy dialog
-          const targetPath = state.currentPath + "/";
-          elements.copyDialog.querySelector(".dialog-title").textContent =
-            "Copy To";
+          let targetPath;
+          if (selectedEntries.length === 1) {
+            // For single item, default to the item's name for renaming
+            const selected = selectedEntries[0];
+            targetPath = selected.name.endsWith("/")
+              ? selected.name.substring(0, selected.name.length - 1)
+              : selected.name;
+          } else {
+            // Multiple items selected, just use current path
+            targetPath = "";
+          }
+
           elements.copyTarget.value = targetPath;
 
           showDialog(elements.copyDialog, () => {
@@ -2897,19 +2893,21 @@
           });
         });
 
+        async function navigateToCurrentPath() {
+          let path = decodeURI(window.location.pathname);
+          path = path.slice(basePath.length);
+          await navigateTo(path);
+        }
+
         // Handle browser navigation (back/forward)
         window.addEventListener("popstate", () => {
-          navigateTo(window.location.pathname);
+          navigateToCurrentPath();
         });
 
         // Initialize the application
         async function init() {
           try {
-            // Get current path from URL
-            const path = decodeURI(window.location.pathname);
-
-            // Navigate to current path
-            await navigateTo(path);
+            await navigateToCurrentPath();
           } catch (error) {
             console.error("Initialization error:", error);
             showToast("error", `Failed to initialize: ${error.message}`);
