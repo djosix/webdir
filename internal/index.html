@@ -1965,7 +1965,7 @@
             const a = document.createElement("a");
             a.textContent = currentText;
             a.href = basePath + currentPath;
-            
+
             const clickTargetPath = currentPath;
             a.addEventListener("click", (e) => {
               if (e.metaKey || e.ctrlKey || e.altKey || e.shiftKey) {
@@ -2295,7 +2295,9 @@
             // Focus on the checkbox of the entry that matches the previous path
             document
               .querySelector(
-                `.file-table a[href="${CSS.escape(previousPath)}"]`
+                `.file-table a[href="${CSS.escape(
+                  basePath + previousPath + "/"
+                )}"]`
               )
               ?.closest(".file-table tr")
               ?.querySelector('input[type="checkbox"]')
