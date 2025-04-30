@@ -344,9 +344,9 @@ type DirectoryContents struct {
 
 // APIResponse represents a standard API response
 type APIResponse struct {
-	Success bool        `json:"success"`
-	Message string      `json:"message"`
-	Data    interface{} `json:"data,omitempty"`
+	Success bool   `json:"success"`
+	Message string `json:"message"`
+	Data    any    `json:"data,omitempty"`
 }
 
 // handleAPIList handles the list directory API endpoint
@@ -483,7 +483,7 @@ func (s *Server) handleAPIRequest(w http.ResponseWriter, r *http.Request, apiTyp
 }
 
 // sendJSONResponse sends a JSON response
-func sendJSONResponse(w http.ResponseWriter, data interface{}) {
+func sendJSONResponse(w http.ResponseWriter, data any) {
 	w.Header().Set("Content-Type", "application/json; charset=utf-8")
 
 	jsonData, err := json.Marshal(data)
@@ -794,7 +794,7 @@ func (s *Server) handleAPIUpload(w http.ResponseWriter, r *http.Request) {
 	sendJSONResponse(w, APIResponse{
 		Success: true,
 		Message: fmt.Sprintf("Successfully uploaded %d file(s)", fileCount),
-		Data: map[string]interface{}{
+		Data: map[string]any{
 			"count": fileCount,
 			"files": uploadedFiles,
 		},
@@ -906,7 +906,7 @@ func (s *Server) handleAPICopy(w http.ResponseWriter, r *http.Request) {
 		sendJSONResponse(w, APIResponse{
 			Success: copied > 0,
 			Message: fmt.Sprintf("Copied %d out of %d items.", copied, len(paths)),
-			Data: map[string]interface{}{
+			Data: map[string]any{
 				"copied": copied,
 				"total":  len(paths),
 				"errors": len(paths) - copied,
@@ -916,7 +916,7 @@ func (s *Server) handleAPICopy(w http.ResponseWriter, r *http.Request) {
 		sendJSONResponse(w, APIResponse{
 			Success: true,
 			Message: fmt.Sprintf("Successfully copied %d item(s)", copied),
-			Data: map[string]interface{}{
+			Data: map[string]any{
 				"copied": copied,
 				"total":  len(paths),
 			},
@@ -1084,7 +1084,7 @@ func (s *Server) handleAPIMove(w http.ResponseWriter, r *http.Request) {
 		sendJSONResponse(w, APIResponse{
 			Success: moved > 0,
 			Message: fmt.Sprintf("Moved %d out of %d items", moved, len(paths)),
-			Data: map[string]interface{}{
+			Data: map[string]any{
 				"moved":  moved,
 				"total":  len(paths),
 				"errors": len(paths) - moved,
@@ -1094,7 +1094,7 @@ func (s *Server) handleAPIMove(w http.ResponseWriter, r *http.Request) {
 		sendJSONResponse(w, APIResponse{
 			Success: true,
 			Message: fmt.Sprintf("Successfully moved %d item(s)", moved),
-			Data: map[string]interface{}{
+			Data: map[string]any{
 				"moved": moved,
 				"total": len(paths),
 			},
@@ -1179,7 +1179,7 @@ func (s *Server) handleAPIDelete(w http.ResponseWriter, r *http.Request) {
 		sendJSONResponse(w, APIResponse{
 			Success: deleted > 0,
 			Message: fmt.Sprintf("Deleted %d out of %d items", deleted, len(paths)),
-			Data: map[string]interface{}{
+			Data: map[string]any{
 				"deleted": deleted,
 				"total":   len(paths),
 				"errors":  len(paths) - deleted,
@@ -1189,7 +1189,7 @@ func (s *Server) handleAPIDelete(w http.ResponseWriter, r *http.Request) {
 		sendJSONResponse(w, APIResponse{
 			Success: true,
 			Message: fmt.Sprintf("Successfully deleted %d item(s)", deleted),
-			Data: map[string]interface{}{
+			Data: map[string]any{
 				"deleted": deleted,
 				"total":   len(paths),
 			},
@@ -1257,7 +1257,7 @@ func (s *Server) handleAPIEdit(w http.ResponseWriter, r *http.Request) {
 		// Send the file content
 		sendJSONResponse(w, APIResponse{
 			Success: true,
-			Data: map[string]interface{}{
+			Data: map[string]any{
 				"path":    path,
 				"content": string(content),
 				"size":    info.Size(),
