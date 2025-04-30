@@ -1091,7 +1091,7 @@ func (s *Server) handleAPIMove(w http.ResponseWriter, r *http.Request) {
 
 		// Determine the final target path
 		var finalTargetPath string
-		if isTargetDir && len(paths) > 1 {
+		if isTargetDir {
 			// When moving multiple items to a directory
 			finalTargetPath = filepath.Join(targetFsPath, filepath.Base(sourceFsPath))
 		} else {
