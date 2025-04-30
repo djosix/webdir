@@ -327,10 +327,6 @@
         width: 90px;
       }
 
-      .file-table th[data-sort="permission"] {
-        width: 120px;
-      }
-
       .file-table th[data-sort="modTime"] {
         width: 190px;
       }
@@ -1137,7 +1133,6 @@
               </th>
               <th data-sort="name">Name</th>
               <th data-sort="size">Size</th>
-              <th data-sort="permission">Permissions</th>
               <th data-sort="modTime">Modified</th>
             </tr>
           </thead>
@@ -2118,11 +2113,6 @@
             sizeCell.textContent = entry.isDir ? "-" : entry.humanSize;
             row.appendChild(sizeCell);
 
-            // Permission cell
-            const permissionCell = document.createElement("td");
-            permissionCell.textContent = entry.permission;
-            row.appendChild(permissionCell);
-
             // Modified date cell
             const modifiedCell = document.createElement("td");
             modifiedCell.textContent = formatDate(entry.modTime);
@@ -2246,19 +2236,8 @@
               case "size":
                 comparison = a.size - b.size;
                 break;
-              case "permission":
-                comparison = a.permission.localeCompare(b.permission);
-                break;
-              case "createTime":
-                comparison =
-                  new Date(a.createTime || 0) - new Date(b.createTime || 0);
-                break;
               case "modTime":
                 comparison = new Date(a.modTime) - new Date(b.modTime);
-                break;
-              case "accessTime":
-                comparison =
-                  new Date(a.accessTime || 0) - new Date(b.accessTime || 0);
                 break;
               default:
                 comparison = 0;
@@ -2289,7 +2268,7 @@
             const previousPath = state.currentPath + "/";
 
             // Update state
-            state.currentPath = contents.path;
+            state.currentPath = path.replace(/\/+$/, "");
             state.entries = contents.entries;
             state.originalOrder = [...contents.entries];
 

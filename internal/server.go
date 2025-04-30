@@ -329,20 +329,17 @@ func (s *Server) serveDirectoryListing(w http.ResponseWriter, r *http.Request, f
 
 // FileInfo represents information about a file or directory for the API
 type FileInfo struct {
-	Name       string    `json:"name"`
-	Path       string    `json:"path"`
-	Size       int64     `json:"size"`
-	HumanSize  string    `json:"humanSize"`
-	IsDir      bool      `json:"isDir"`
-	Permission string    `json:"permission"`
-	ModTime    time.Time `json:"modTime"`
+	Name      string    `json:"name"`
+	Path      string    `json:"path"`
+	Size      int64     `json:"size"`
+	HumanSize string    `json:"humanSize"`
+	IsDir     bool      `json:"isDir"`
+	ModTime   time.Time `json:"modTime"`
 }
 
 // DirectoryContents represents the contents of a directory for the API
 type DirectoryContents struct {
-	Path     string     `json:"path"`
-	Entries  []FileInfo `json:"entries"`
-	Writable bool       `json:"writable"`
+	Entries []FileInfo `json:"entries"`
 }
 
 // APIResponse represents a standard API response
@@ -417,14 +414,9 @@ func (s *Server) readDirectoryContents(dirPath string) (DirectoryContents, error
 		return DirectoryContents{}, err
 	}
 
-	// Check if the directory is writable
-	writable := isWritable(dirPath)
-
 	// Create result
 	result := DirectoryContents{
-		Path:     s.webPath(dirPath),
-		Writable: writable,
-		Entries:  make([]FileInfo, 0, len(entries)),
+		Entries: make([]FileInfo, 0, len(entries)),
 	}
 
 	// Process each entry
@@ -439,13 +431,12 @@ func (s *Server) readDirectoryContents(dirPath string) (DirectoryContents, error
 
 		// Create file info
 		fileInfo := FileInfo{
-			Name:       name,
-			Path:       s.webPath(entryPath),
-			Size:       info.Size(),
-			HumanSize:  humanReadableSize(info.Size()),
-			IsDir:      info.IsDir(),
-			Permission: getPermissionString(entryPath),
-			ModTime:    info.ModTime(),
+			Name:      name,
+			Path:      s.webPath(entryPath),
+			Size:      info.Size(),
+			HumanSize: humanReadableSize(info.Size()),
+			IsDir:     info.IsDir(),
+			ModTime:   info.ModTime(),
 		}
 
 		// Add trailing slash for directories in path
@@ -549,48 +540,6 @@ func humanReadableSize(size int64) string {
 	formattedValue = strings.TrimSuffix(formattedValue, ".0")
 
 	return fmt.Sprintf("%s %s", formattedValue, units[exponent])
-}
-
-// getPermissionString returns a permission string ("Read", "Write", "Read, Write", or "")
-func getPermissionString(path string) string {
-	var permissions []string
-
-	// Get file info to check permissions
-	info, err := os.Stat(path)
-	if err != nil {
-		return ""
-	}
-
-	// Get file mode and check read permission
-	mode := info.Mode()
-
-	// Check read permission
-	if mode&0444 != 0 {
-		permissions = append(permissions, "Read")
-	}
-
-	// Check write permission
-	if mode&0222 != 0 {
-		permissions = append(permissions, "Write")
-	}
-
-	// Join the permissions with a comma
-	return strings.Join(permissions, ", ")
-}
-
-// isWritable checks if a file or directory is writable using file stat
-func isWritable(path string) bool {
-	// Get file info to check permissions
-	info, err := os.Stat(path)
-	if err != nil {
-		return false
-	}
-
-	// Get file mode and check write permission
-	mode := info.Mode()
-
-	// Check if writable by owner, group, or others
-	return mode&0222 != 0
 }
 
 // APIRequest represents a standard API request structure
