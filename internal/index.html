@@ -1961,16 +1961,19 @@
               currentPath += part + "/";
               currentText = part;
             }
-            const targetPath = basePath + currentPath;
-
             const li = document.createElement("li");
             const a = document.createElement("a");
             a.textContent = currentText;
-            a.href = targetPath;
+            a.href = basePath + currentPath;
+            
+            const clickTargetPath = currentPath;
             a.addEventListener("click", (e) => {
+              if (e.metaKey || e.ctrlKey || e.altKey || e.shiftKey) {
+                return;
+              }
+
               e.preventDefault();
-              // Explicitly call navigateTo with the right path
-              navigateTo(targetPath);
+              navigateTo(clickTargetPath);
             });
 
             li.appendChild(a);
