@@ -87,11 +87,25 @@ func (s *Server) Start() {
 }
 
 // absolutePath converts a web path to an absolute filesystem path
-func (s *Server) absolutePath(webPath string) string {
-	x := strings.TrimSuffix(s.Options.BasePath, "/")
-	x = strings.TrimPrefix(webPath, x)
-	x = strings.Trim(x, "/")
-	return filepath.Join(s.Options.DocumentRoot, x)
+func (s *Server) absolutePath(webPath string) (string, bool) {
+	for part := range strings.SplitSeq(webPath, "/") {
+		if part == ".." {
+			return "", false
+		}
+		if strings.Contains(part, string(filepath.Separator)) {
+			return "", false
+		}
+	}
+
+	relPath := strings.TrimPrefix(webPath, strings.TrimRight(s.Options.BasePath, "/"))
+	relPath = strings.Join(strings.Split(relPath, "/"), string(filepath.Separator))
+	fsPath := filepath.Join(s.Options.DocumentRoot, relPath)
+
+	if !s.isPathInDocumentRoot(fsPath) {
+		return "", false
+	}
+
+	return fsPath, true
 }
 
 // webPath converts a filesystem path to a web path
@@ -151,8 +165,8 @@ func (s *Server) authMiddleware(next http.Handler) http.Handler {
 	})
 }
 
-// isPathSafe checks if a path is safe to access (doesn't escape document root)
-func (s *Server) isPathSafe(path string) bool {
+// isPathInDocumentRoot checks if a path is safe to access (doesn't escape document root)
+func (s *Server) isPathInDocumentRoot(path string) bool {
 	// Convert to absolute path
 	absPath, err := filepath.Abs(path)
 	if err != nil {
@@ -179,19 +193,17 @@ func (s *Server) handleRequest(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	// Regular file/directory request
-	// Get the relative path from the URL
-	urlPath := r.URL.Path
-	fsPath := s.absolutePath(urlPath)
-
 	// Check for curl upload using multipart/form-data with 'upload' field
 	if r.Method == http.MethodPost && strings.Contains(r.Header.Get("Content-Type"), "multipart/form-data") {
 		s.handleAPIRequest(w, r, "upload")
 		return
 	}
 
-	// Check if the path is safe
-	if !s.isPathSafe(fsPath) {
+	// Regular file/directory request
+	// Get the relative path from the URL
+	urlPath := r.URL.Path
+	fsPath, ok := s.absolutePath(urlPath)
+	if !ok {
 		sendJSONError(w, "Forbidden", http.StatusForbidden)
 		return
 	}
@@ -342,9 +354,8 @@ func (s *Server) handleAPIList(w http.ResponseWriter, r *http.Request) {
 	}
 
 	// Get the absolute filesystem path
-	fsPath := s.absolutePath(path)
-	if !s.isPathSafe(fsPath) {
-		slog.Warn("failed to list directory", "path", fsPath, "error", "path outside document root")
+	fsPath, ok := s.absolutePath(path)
+	if !ok {
 		sendJSONError(w, "Forbidden", http.StatusForbidden)
 		return
 	}
@@ -603,9 +614,8 @@ func (s *Server) handleAPIMkdir(w http.ResponseWriter, r *http.Request) {
 	}
 
 	// Get the absolute filesystem path
-	fsPath := s.absolutePath(req.Path)
-	if !s.isPathSafe(fsPath) {
-		slog.Warn("failed to create directory", "path", fsPath, "error", "path outside document root")
+	fsPath, ok := s.absolutePath(req.Path)
+	if !ok {
 		sendJSONError(w, "Forbidden", http.StatusForbidden)
 		return
 	}
@@ -668,9 +678,8 @@ func (s *Server) handleAPIUpload(w http.ResponseWriter, r *http.Request) {
 	}
 
 	// Convert to filesystem path and ensure it's safe
-	destFsPath := s.absolutePath(destPath)
-	if !s.isPathSafe(destFsPath) {
-		slog.Warn("failed to upload file", "path", destFsPath, "error", "destination path outside document root")
+	destFsPath, ok := s.absolutePath(destPath)
+	if !ok {
 		sendJSONError(w, "Forbidden", http.StatusForbidden)
 		return
 	}
@@ -736,8 +745,7 @@ func (s *Server) handleAPIUpload(w http.ResponseWriter, r *http.Request) {
 			var targetPath string
 			if destInfo != nil && destInfo.IsDir() {
 				targetPath = filepath.Join(destFsPath, fileHeader.Filename)
-				if !s.isPathSafe(targetPath) {
-					slog.Warn("upload target path is outside document root", "path", targetPath)
+				if !s.isPathInDocumentRoot(targetPath) {
 					sendJSONError(w, "Forbidden", http.StatusForbidden)
 					return
 				}
@@ -866,9 +874,8 @@ func (s *Server) handleAPICopy(w http.ResponseWriter, r *http.Request) {
 	}
 
 	// Convert target to filesystem path and ensure it's safe
-	targetFsPath := s.absolutePath(req.Target)
-	if !s.isPathSafe(targetFsPath) {
-		slog.Warn("failed to copy", "path", targetFsPath, "error", "target path outside document root")
+	targetFsPath, ok := s.absolutePath(req.Target)
+	if !ok {
 		sendJSONError(w, "Forbidden", http.StatusForbidden)
 		return
 	}
@@ -882,9 +889,9 @@ func (s *Server) handleAPICopy(w http.ResponseWriter, r *http.Request) {
 
 	for _, path := range paths {
 		// Convert to filesystem path and ensure it's safe
-		sourceFsPath := s.absolutePath(path)
-		if !s.isPathSafe(sourceFsPath) {
-			slog.Warn("failed to copy", "path", path, "error", "source path outside document root")
+		sourceFsPath, ok := s.absolutePath(path)
+		if !ok {
+			slog.Warn("failed to copy", "path", path, "error", "source path is not safe")
 			continue
 		}
 
@@ -1061,9 +1068,8 @@ func (s *Server) handleAPIMove(w http.ResponseWriter, r *http.Request) {
 	}
 
 	// Convert target to filesystem path and ensure it's safe
-	targetFsPath := s.absolutePath(req.Target)
-	if !s.isPathSafe(targetFsPath) {
-		slog.Warn("failed to move", "path", targetFsPath, "error", "target path outside document root")
+	targetFsPath, ok := s.absolutePath(req.Target)
+	if !ok {
 		sendJSONError(w, "Forbidden", http.StatusForbidden)
 		return
 	}
@@ -1077,9 +1083,9 @@ func (s *Server) handleAPIMove(w http.ResponseWriter, r *http.Request) {
 
 	for _, path := range paths {
 		// Convert to filesystem path and ensure it's safe
-		sourceFsPath := s.absolutePath(path)
-		if !s.isPathSafe(sourceFsPath) {
-			slog.Warn("failed to move", "path", path, "error", "source path outside document root")
+		sourceFsPath, ok := s.absolutePath(path)
+		if !ok {
+			slog.Warn("failed to move", "path", path, "error", "source path is not safe")
 			continue
 		}
 
@@ -1169,9 +1175,9 @@ func (s *Server) handleAPIDelete(w http.ResponseWriter, r *http.Request) {
 
 	for _, path := range paths {
 		// Convert to filesystem path and ensure it's safe
-		fsPath := s.absolutePath(path)
-		if !s.isPathSafe(fsPath) {
-			slog.Warn("failed to delete", "path", path, "error", "path outside document root")
+		fsPath, ok := s.absolutePath(path)
+		if !ok {
+			slog.Warn("failed to delete", "path", path, "error", "path is not safe")
 			continue
 		}
 
@@ -1245,9 +1251,8 @@ func (s *Server) handleAPIEdit(w http.ResponseWriter, r *http.Request) {
 		}
 
 		// Get the absolute filesystem path
-		fsPath := s.absolutePath(path)
-		if !s.isPathSafe(fsPath) {
-			slog.Warn("failed to get file content", "path", fsPath, "error", "path outside document root")
+		fsPath, ok := s.absolutePath(path)
+		if !ok {
 			sendJSONError(w, "Forbidden", http.StatusForbidden)
 			return
 		}
@@ -1318,9 +1323,8 @@ func (s *Server) handleAPIEdit(w http.ResponseWriter, r *http.Request) {
 		}
 
 		// Get the absolute filesystem path
-		fsPath := s.absolutePath(req.Path)
-		if !s.isPathSafe(fsPath) {
-			slog.Warn("failed to save file", "path", fsPath, "error", "path outside document root")
+		fsPath, ok := s.absolutePath(req.Path)
+		if !ok {
 			sendJSONError(w, "Forbidden", http.StatusForbidden)
 			return
 		}
