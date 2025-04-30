@@ -6,6 +6,7 @@ import (
 	_ "embed"
 	"encoding/base64"
 	"encoding/json"
+	"errors"
 	"fmt"
 	"io"
 	"log/slog"
@@ -249,6 +250,11 @@ func (s *Server) handleRequest(w http.ResponseWriter, r *http.Request) {
 	// Serve file directly using ServeContent to prevent unwanted redirections
 	file, err := os.Open(fsPath)
 	if err != nil {
+		if errors.Is(err, os.ErrPermission) {
+			sendJSONError(w, "Forbidden", http.StatusForbidden)
+			return
+		}
+		slog.Warn("failed to open file", "error", fmt.Sprintf("open: %v", err))
 		sendJSONError(w, "Error opening file", http.StatusInternalServerError)
 		return
 	}
@@ -380,6 +386,10 @@ func (s *Server) handleAPIList(w http.ResponseWriter, r *http.Request) {
 	// Read directory contents
 	contents, err := s.readDirectoryContents(fsPath)
 	if err != nil {
+		if errors.Is(err, os.ErrPermission) {
+			sendJSONError(w, "Forbidden", http.StatusForbidden)
+			return
+		}
 		slog.Warn("failed to read directory", "error", err)
 		sendJSONError(w, "Failed to read directory", http.StatusInternalServerError)
 		return
