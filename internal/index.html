@@ -1441,20 +1441,10 @@
           // List directory contents
           async listDirectory(path) {
             try {
-              const response = await fetch(
-                `${basePath}/?api=list&path=${encodeURIComponent(path)}`,
-                {
-                  credentials: "include",
-                }
+              return await request(
+                "GET",
+                `${basePath}/?api=list&path=${encodeURIComponent(path)}`
               );
-              if (!response.ok) {
-                throw new Error(`HTTP error ${response.status}`);
-              }
-              const data = await response.json();
-              if (!data.success) {
-                throw new Error(data.message || "Unknown error");
-              }
-              return data.data;
             } catch (error) {
               showToast("error", `Failed to list directory: ${error.message}`);
               throw error;
@@ -1464,29 +1454,12 @@
           // Create file
           async createFile(path) {
             try {
-              const response = await fetch(`${basePath}/?api=edit`, {
-                method: "POST",
-                headers: {
-                  "Content-Type": "application/json",
-                },
-                body: JSON.stringify({
-                  path,
-                  content: "",
-                }),
-                credentials: "include",
+              await request("POST", `${basePath}/?api=edit`, {
+                path,
+                content: "",
               });
 
-              if (!response.ok) {
-                throw new Error(`HTTP error ${response.status}`);
-              }
-
-              const data = await response.json();
-              if (!data.success) {
-                throw new Error(data.message || "Unknown error");
-              }
-
               showToast("success", "File created successfully");
-              return data;
             } catch (error) {
               showToast("error", `Failed to create file: ${error.message}`);
               throw error;
@@ -1496,26 +1469,9 @@
           // Create directory
           async createDirectory(path) {
             try {
-              const response = await fetch(`${basePath}/?api=mkdir`, {
-                method: "POST",
-                headers: {
-                  "Content-Type": "application/json",
-                },
-                body: JSON.stringify({ path }),
-                credentials: "include",
-              });
-
-              if (!response.ok) {
-                throw new Error(`HTTP error ${response.status}`);
-              }
-
-              const data = await response.json();
-              if (!data.success) {
-                throw new Error(data.message || "Unknown error");
-              }
+              await request("POST", `${basePath}/?api=mkdir`, { path });
 
               showToast("success", "Directory created successfully");
-              return data;
             } catch (error) {
               showToast(
                 "error",
@@ -1586,61 +1542,20 @@
             }
           },
 
-          // Upload a single file with curl-compatible API
-          async uploadCurlFile(path, file) {
-            try {
-              const formData = new FormData();
-              formData.append("file", file);
-
-              const response = await fetch(path, {
-                method: "POST",
-                body: formData,
-                credentials: "include",
-              });
-
-              if (!response.ok) {
-                throw new Error(`HTTP error ${response.status}`);
-              }
-
-              showToast("success", "File uploaded successfully");
-              return true;
-            } catch (error) {
-              showToast("error", `Upload failed: ${error.message}`);
-              throw error;
-            }
-          },
-
           // Move files/directories
           async moveItems(paths, target) {
             try {
-              const response = await fetch(`${basePath}/?api=move`, {
-                method: "POST",
-                headers: {
-                  "Content-Type": "application/json",
-                },
-                body: JSON.stringify({
-                  paths,
-                  target: target.startsWith("/")
-                    ? target
-                    : state.currentPath + "/" + target,
-                }),
-                credentials: "include",
+              const response = await request("POST", `${basePath}/?api=move`, {
+                paths,
+                target: target.startsWith("/")
+                  ? target
+                  : state.currentPath + "/" + target,
               });
-
-              if (!response.ok) {
-                throw new Error(`HTTP error ${response.status}`);
-              }
-
-              const data = await response.json();
-              if (!data.success) {
-                throw new Error(data.message || "Unknown error");
-              }
 
               showToast(
                 "success",
-                `Successfully moved ${data.data.moved} item(s)`
+                `Successfully moved ${response.moved} item(s)`
               );
-              return data;
             } catch (error) {
               showToast("error", `Failed to move items: ${error.message}`);
               throw error;
@@ -1650,34 +1565,17 @@
           // Copy files/directories
           async copyItems(paths, target) {
             try {
-              const response = await fetch(`${basePath}/?api=copy`, {
-                method: "POST",
-                headers: {
-                  "Content-Type": "application/json",
-                },
-                body: JSON.stringify({
-                  paths,
-                  target: target.startsWith("/")
-                    ? target
-                    : state.currentPath + "/" + target,
-                }),
-                credentials: "include",
+              const response = await request("POST", `${basePath}/?api=copy`, {
+                paths,
+                target: target.startsWith("/")
+                  ? target
+                  : state.currentPath + "/" + target,
               });
-
-              if (!response.ok) {
-                throw new Error(`HTTP error ${response.status}`);
-              }
-
-              const data = await response.json();
-              if (!data.success) {
-                throw new Error(data.message || "Unknown error");
-              }
 
               showToast(
                 "success",
-                `Successfully copied ${data.data.copied} item(s)`
+                `Successfully copied ${response.copied} item(s)`
               );
-              return data;
             } catch (error) {
               showToast("error", `Failed to copy items: ${error.message}`);
               throw error;
@@ -1687,29 +1585,16 @@
           // Delete files/directories
           async deleteItems(paths) {
             try {
-              const response = await fetch(`${basePath}/?api=delete`, {
-                method: "POST",
-                headers: {
-                  "Content-Type": "application/json",
-                },
-                body: JSON.stringify({ paths }),
-                credentials: "include",
-              });
-
-              if (!response.ok) {
-                throw new Error(`HTTP error ${response.status}`);
-              }
-
-              const data = await response.json();
-              if (!data.success) {
-                throw new Error(data.message || "Unknown error");
-              }
+              const response = await request(
+                "POST",
+                `${basePath}/?api=delete`,
+                { paths }
+              );
 
               showToast(
                 "success",
-                `Successfully deleted ${data.data.deleted} item(s)`
+                `Successfully deleted ${response.deleted} item(s)`
               );
-              return data;
             } catch (error) {
               showToast("error", `Failed to delete items: ${error.message}`);
               throw error;
@@ -1719,22 +1604,10 @@
           // Get file content for editing
           async getFileContent(path) {
             try {
-              const response = await fetch(
-                `${basePath}/?api=edit&path=${encodeURIComponent(path)}`,
-                {
-                  credentials: "include",
-                }
+              return await request(
+                "GET",
+                `${basePath}/?api=edit&path=${encodeURIComponent(path)}`
               );
-              if (!response.ok) {
-                throw new Error(`HTTP error ${response.status}`);
-              }
-
-              const data = await response.json();
-              if (!data.success) {
-                throw new Error(data.message || "Unknown error");
-              }
-
-              return data.data;
             } catch (error) {
               showToast(
                 "error",
@@ -1747,29 +1620,12 @@
           // Save file content
           async saveFileContent(path, content) {
             try {
-              const response = await fetch(`${basePath}/?api=edit`, {
-                method: "POST",
-                headers: {
-                  "Content-Type": "application/json",
-                },
-                body: JSON.stringify({
-                  path,
-                  content,
-                }),
-                credentials: "include",
+              const response = await request("POST", `${basePath}/?api=edit`, {
+                path,
+                content,
               });
 
-              if (!response.ok) {
-                throw new Error(`HTTP error ${response.status}`);
-              }
-
-              const data = await response.json();
-              if (!data.success) {
-                throw new Error(data.message || "Unknown error");
-              }
-
               showToast("success", "File saved successfully");
-              return data;
             } catch (error) {
               showToast("error", `Failed to save file: ${error.message}`);
               throw error;
@@ -3255,6 +3111,58 @@
         // Function to decode a path from a URL
         function decodePath(path) {
           return path.split("/").map(decodeURIComponent).join("/");
+        }
+
+        // XMLHttpRequest wrapper
+        function request(method, url, body = null) {
+          return new Promise((resolve, reject) => {
+            const request = new XMLHttpRequest();
+
+            request.open(method, url, true);
+            request.responseType = "text";
+            request.withCredentials = true;
+
+            request.onload = function () {
+              if (Math.floor(request.status / 100) !== 2) {
+                reject(
+                  new Error(
+                    `HTTP error ${request.status}: ${request.statusText}`
+                  )
+                );
+                return;
+              }
+
+              let data = null;
+              try {
+                data = JSON.parse(request.responseText);
+              } catch (e) {
+                reject(new Error("Invalid JSON response"));
+                return;
+              }
+
+              if (!data.success) {
+                reject(new Error(data.message || "Unknown error"));
+                return;
+              }
+
+              resolve(data.data);
+            };
+
+            request.onerror = function () {
+              reject(new Error("Network error occurred"));
+            };
+
+            request.ontimeout = function () {
+              reject(new Error("Request timeout"));
+            };
+
+            if (body && typeof body === "object") {
+              request.setRequestHeader("Content-Type", "application/json");
+              request.send(JSON.stringify(body));
+            } else {
+              request.send(body);
+            }
+          });
         }
 
         // Start the application
