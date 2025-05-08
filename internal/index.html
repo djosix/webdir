@@ -1964,7 +1964,7 @@
             const li = document.createElement("li");
             const a = document.createElement("a");
             a.textContent = currentText;
-            a.href = basePath + currentPath;
+            a.href = encodePath(basePath + currentPath);
 
             const clickTargetPath = currentPath;
             a.addEventListener("click", (e) => {
@@ -2077,7 +2077,7 @@
             iconSpan.innerHTML = entry.isDir ? icons.directory : icons.file;
             nameContainer.appendChild(iconSpan);
 
-            const fullEntryPath = basePath + entry.path;
+            const fullEntryPath = encodePath(basePath + entry.path);
 
             // Name with link
             const nameLink = document.createElement("a");
@@ -2281,7 +2281,7 @@
             document.title = path;
 
             // Update URL without reloading the page
-            history.pushState(null, "", basePath + path);
+            history.pushState(null, "", encodePath(basePath + path));
 
             // Update UI
             updateUI();
@@ -2296,7 +2296,7 @@
             document
               .querySelector(
                 `.file-table a[href="${CSS.escape(
-                  basePath + previousPath + "/"
+                  encodePath(basePath + previousPath + "/")
                 )}"]`
               )
               ?.closest(".file-table tr")
@@ -2880,7 +2880,8 @@
         });
 
         async function navigateToCurrentPath() {
-          let path = decodeURI(window.location.pathname);
+          let path = window.location.pathname;
+          path = decodePath(path);
           path = path.slice(basePath.length);
           await navigateTo(path);
         }
@@ -3244,6 +3245,16 @@
 
           // Filter out any null elements
           return elements.filter((el) => el !== null);
+        }
+
+        // Function to encode a path for use in a URL
+        function encodePath(path) {
+          return path.split("/").map(encodeURIComponent).join("/");
+        }
+
+        // Function to decode a path from a URL
+        function decodePath(path) {
+          return path.split("/").map(decodeURIComponent).join("/");
         }
 
         // Start the application
