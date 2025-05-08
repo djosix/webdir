@@ -636,7 +636,7 @@ func (s *Server) handleAPIUpload(w http.ResponseWriter, r *http.Request) {
 	destPath := r.FormValue("path")
 	if destPath == "" {
 		// Try to get from URL query
-		destPath = r.URL.Path
+		destPath = strings.TrimPrefix(r.URL.Path, s.Options.BasePath)
 	}
 
 	if destPath == "" {
