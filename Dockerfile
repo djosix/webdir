@@ -11,7 +11,6 @@ RUN go build -o webdir -ldflags '-s -w' main.go
 
 FROM alpine:3.21
 
-RUN apk --no-cache add ca-certificates
 COPY --from=builder /app/webdir /usr/local/bin/webdir
 
 WORKDIR /data
