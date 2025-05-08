@@ -2262,6 +2262,9 @@
 
         // Navigate to a path
         async function navigateTo(path) {
+          if (!path.endsWith("/")) {
+            path += "/";
+          }
           try {
             // Clear selection
             state.selected.clear();
