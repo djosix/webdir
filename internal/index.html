@@ -1543,10 +1543,7 @@
 
               // Create promise to handle async upload
               const uploadPromise = new Promise((resolve, reject) => {
-                xhr.open(
-                  "POST",
-                  `${basePath}/?api=upload&path=${encodeURIComponent(path)}`
-                );
+                xhr.open("POST", `${basePath}/?api=upload`);
 
                 xhr.upload.addEventListener("progress", (event) => {
                   if (event.lengthComputable) {
