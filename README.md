@@ -48,6 +48,7 @@ docker run -it --rm -v "$PWD:/data" -p 9999:9999 djosix/webdir
 - `Enter`: Open the selected file or go to the selected directory
 - `Escape`: Defocus any focused element
 - `/`: Focus on search
+- `a`: Toggle select-all
 - `f`: New file
 - `d`: New directory
 - `u`: Upload files
