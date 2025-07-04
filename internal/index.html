@@ -2708,6 +2708,9 @@
           } else if (e.key === "ArrowUp") {
             e.preventDefault();
             focusOnPreviousElement(elements.filterInput);
+          } else if (e.key === "Tab") {
+            e.preventDefault();
+            focusOnNextElement(elements.filterInput);
           }
         });
 
