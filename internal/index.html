@@ -3090,9 +3090,6 @@
           // Start with filter input
           const elements = [document.getElementById("filter-input")];
 
-          // Add select all checkbox
-          elements.push(document.querySelector('th input[type="checkbox"]'));
-
           // Add all visible entry checkboxes
           const entryCheckboxes = Array.from(
             document.querySelectorAll('tbody input[type="checkbox"]')
