@@ -95,8 +95,10 @@ func (s *Server) absolutePath(webPath string) (string, bool) {
 		if part == "." || part == "" {
 			continue
 		}
-		if part == ".." && len(parts) > 0 {
-			parts = parts[:len(parts)-1]
+		if part == ".." {
+			if n := len(parts); n > 0 {
+				parts = parts[:n-1]
+			}
 			continue
 		}
 		if strings.Contains(part, string(filepath.Separator)) {
@@ -187,6 +189,20 @@ func (s *Server) isPathInDocumentRoot(path string) bool {
 	if err != nil {
 		slog.Warn("failed to get absolute path", "path", s.Options.DocumentRoot, "error", fmt.Sprintf("abs: %v", err))
 		return false
+	}
+
+	// Normalize paths to ensure consistent trailing separators
+	docRoot = filepath.Clean(docRoot)
+	absPath = filepath.Clean(absPath)
+
+	// Check if path is exactly the document root (should be allowed)
+	if absPath == docRoot {
+		return true
+	}
+
+	// Ensure docRoot ends with separator for prefix check
+	if !strings.HasSuffix(docRoot, string(filepath.Separator)) {
+		docRoot += string(filepath.Separator)
 	}
 
 	return strings.HasPrefix(absPath, docRoot)
