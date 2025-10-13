@@ -66,6 +66,7 @@ func (s *Server) Start() {
 		cert, err := newSelfSignedCert()
 		if err != nil {
 			slog.Error("failed to load tls certificate", "error", err)
+			return
 		}
 
 		server.TLSConfig = &tls.Config{
