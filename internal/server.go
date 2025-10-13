@@ -53,17 +53,13 @@ func NewServer(opts Options) *Server {
 
 // Start begins the HTTP server
 func (s *Server) Start() {
-	addr := fmt.Sprintf("%s:%d", s.Options.Host, s.Options.Port)
-
-	// Create server
-	srv := &http.Server{
-		Addr:    addr,
+	server := &http.Server{
+		Addr:    fmt.Sprintf("%s:%d", s.Options.Host, s.Options.Port),
 		Handler: s.authMiddleware(s.Mux),
 	}
 
-	// Start server
-	slog.Info("start server", "addr", addr, "root", s.Options.DocumentRoot)
-	var serveErr error
+	serveFunc := server.ListenAndServe
+	displayUrl := fmt.Sprintf("http://%s", server.Addr)
 
 	if s.Options.HTTPS {
 		// Load the embedded self-signed certificate
@@ -72,18 +68,22 @@ func (s *Server) Start() {
 			slog.Error("failed to load tls certificate", "error", err)
 		}
 
-		srv.TLSConfig = &tls.Config{
+		server.TLSConfig = &tls.Config{
 			Certificates: []tls.Certificate{cert},
 		}
 
-		slog.Info("https enabled with self-signed certificate")
-		serveErr = srv.ListenAndServeTLS("", "")
-	} else {
-		serveErr = srv.ListenAndServe()
+		serveFunc = func() error {
+			slog.Info("https enabled with self-signed certificate")
+			return server.ListenAndServeTLS("", "")
+		}
+		displayUrl = fmt.Sprintf("https://%s", server.Addr)
 	}
 
-	if serveErr != nil {
-		slog.Error("server shutdown", "error", serveErr)
+	// Start server
+	slog.Info("start server", "root", s.Options.DocumentRoot, "url", displayUrl)
+
+	if err := serveFunc(); err != nil {
+		slog.Error("server shutdown", "error", err)
 	}
 }
 
